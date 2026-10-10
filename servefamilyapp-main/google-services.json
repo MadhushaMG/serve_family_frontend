@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "339970712850",
+    "project_id": "tracker-ea3ff",
+    "storage_bucket": "tracker-ea3ff.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:339970712850:android:d9c7caa88dde08040bbfcb",
+        "android_client_info": {
+          "package_name": "com.servefamily.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCN4qiYi2rc_HuFT1rpNzdssZq3BTMjF4I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

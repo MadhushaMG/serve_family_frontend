@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1D4ED8">
+<title>Serve Family – Join with Referral</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+
+<style>
+/* ── RESET ── */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+
+/* ── TOKENS ── */
+:root{
+  --blue-900:#1E3A8A;
+  --blue-700:#1D4ED8;
+  --blue-600:#2563EB;
+  --blue-500:#3B82F6;
+  --blue-50:#EFF6FF;
+  --green-600:#059669;
+  --green-500:#10B981;
+  --green-50:#ECFDF5;
+  --slate-900:#0F172A;
+  --slate-800:#1E293B;
+  --slate-600:#475569;
+  --slate-400:#94A3B8;
+  --slate-200:#E2E8F0;
+  --slate-100:#F1F5F9;
+  --slate-50:#F8FAFC;
+  --white:#FFFFFF;
+  --rx-xl:20px;
+  --rx-lg:14px;
+  --sh-blue:0 8px 32px rgba(37,99,235,.20),0 2px 8px rgba(37,99,235,.12);
+  --sh-card:0 2px 20px rgba(15,23,42,.08),0 1px 4px rgba(15,23,42,.05);
+}
+
+/* ── BASE ── */
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--slate-50);
+  color:var(--slate-800);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ═══════════════════════════════════
+   MOBILE LAYOUT  (default)
+═══════════════════════════════════ */
+.shell{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+
+/* ═══════════════════════════════════
+   DESKTOP LAYOUT  ≥ 860px
+═══════════════════════════════════ */
+@media(min-width:860px){
+  body{ background:#D9E4FF; }
+
+  .shell{
+    flex-direction:row;
+    max-width:1080px;
+    min-height:100vh;
+    margin:0 auto;
+    border-radius:0;
+    overflow:hidden;
+    box-shadow:0 0 80px rgba(15,23,42,.18);
+  }
+
+  /* Left panel */
+  .hero{
+    width:400px;
+    min-width:400px;
+    position:sticky;
+    top:0;
+    height:100vh;
+    overflow-y:auto;
+    padding:40px 36px;
+    border-radius:0 !important;
+  }
+  .hero::after{ display:none; }
+  .hero-body{ padding-bottom:0; }
+  .hero-title{ font-size:34px; }
+  .hero-sub{ max-width:100%; font-size:15px; }
+  .phone-visual{ margin-top:32px; }
+  .phone{ width:180px; height:320px; }
+
+  /* Right panel */
+  .right-panel{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    background:var(--white);
+    overflow-y:auto;
+  }
+  .main{
+    flex:1;
+    padding:36px 36px 28px;
+    margin-top:0;
+    background:transparent;
+  }
+  .footer{
+    padding:16px 36px;
+    text-align:left;
+    border-top:1px solid var(--slate-200);
+    background:var(--white);
+  }
+}
+
+/* ═══════════════════════════════════
+   HERO
+═══════════════════════════════════ */
+.hero{
+  background:linear-gradient(160deg,#1E3A8A 0%,#1D4ED8 55%,#0EA5E9 100%);
+  padding:0 20px 56px;
+  position:relative;
+  overflow:hidden;
+  flex-shrink:0;
+}
+.hero::before{
+  content:'';position:absolute;inset:0;
+  background-image:radial-gradient(circle,rgba(255,255,255,.11) 1px,transparent 1px);
+  background-size:24px 24px;
+  pointer-events:none;
+}
+.hero::after{
+  content:'';position:absolute;
+  bottom:-2px;left:0;right:0;height:52px;
+  background:var(--slate-50);
+  clip-path:ellipse(55% 100% at 50% 100%);
+}
+
+.nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:20px 0 28px;
+  position:relative;z-index:2;
+}
+.logo-wrap{display:flex;align-items:center;gap:10px;}
+.logo-img{height:34px;object-fit:contain;filter:brightness(0) invert(1);}
+.logo-fallback{
+  font-family:'Nunito',sans-serif;
+  font-size:20px;font-weight:900;color:#fff;display:none;
+}
+.nav-badge{
+  display:flex;align-items:center;gap:5px;
+  background:rgba(255,255,255,.14);
+  border:1px solid rgba(255,255,255,.24);
+  padding:5px 12px;border-radius:100px;
+  font-size:12px;font-weight:600;
+  color:rgba(255,255,255,.95);
+  backdrop-filter:blur(8px);
+}
+
+.hero-body{
+  text-align:center;
+  position:relative;z-index:2;
+  padding-bottom:8px;
+}
+.invite-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,.17);
+  border:1px solid rgba(255,255,255,.28);
+  padding:6px 16px;border-radius:100px;
+  margin-bottom:16px;
+  font-size:12.5px;font-weight:700;color:#fff;
+  backdrop-filter:blur(6px);
+  animation:fadeDown .6s ease both;
+}
+.hero-title{
+  font-family:'Nunito',sans-serif;
+  font-size:clamp(27px,8vw,36px);
+  font-weight:900;color:#fff;
+  line-height:1.15;letter-spacing:-.5px;
+  margin-bottom:12px;
+  animation:fadeDown .65s ease .08s both;
+}
+.hero-title .hl{
+  background:linear-gradient(90deg,#FDE68A,#FCD34D);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.hero-sub{
+  font-size:14.5px;color:rgba(255,255,255,.80);
+  max-width:300px;margin:0 auto 28px;line-height:1.6;
+  animation:fadeDown .65s ease .16s both;
+}
+.phone-visual{
+  animation:fadeDown .65s ease .24s both;
+  display:flex;justify-content:center;
+}
+.phone{
+  width:160px;height:290px;
+  background:#fff;border-radius:28px;
+  box-shadow:0 24px 56px rgba(0,0,0,.28),0 0 0 3px rgba(255,255,255,.15);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:12px;
+  position:relative;overflow:hidden;
+}
+.phone-notch{
+  position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:52px;height:16px;
+  background:var(--slate-800);border-radius:0 0 12px 12px;
+}
+.phone-app-icon{
+  width:56px;height:56px;
+  background:linear-gradient(135deg,#1D4ED8,#0EA5E9);
+  border-radius:15px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 16px rgba(29,78,216,.35);
+}
+.phone-app-label{
+  font-family:'Nunito',sans-serif;
+  font-size:13px;font-weight:800;color:var(--slate-800);
+}
+.phone-cta-btn{
+  background:linear-gradient(90deg,#1D4ED8,#0EA5E9);
+  color:#fff;border:none;border-radius:10px;
+  padding:8px 20px;
+  font-size:11px;font-weight:700;cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+  transition:opacity .2s;
+}
+.phone-cta-btn:hover{opacity:.86;}
+
+/* ═══════════════════════════════════
+   RIGHT PANEL WRAPPER (mobile: just stacks)
+═══════════════════════════════════ */
+.right-panel{
+  display:flex;flex-direction:column;
+  flex:1;
+}
+
+/* ═══════════════════════════════════
+   MAIN
+═══════════════════════════════════ */
+.main{
+  flex:1;
+  padding:0 16px 36px;
+  margin-top:-28px;
+  position:relative;z-index:10;
+  display:flex;flex-direction:column;gap:14px;
+}
+
+/* CARD */
+.card{
+  background:var(--white);
+  border-radius:var(--rx-xl);
+  box-shadow:var(--sh-card);
+  padding:22px 20px;
+  animation:fadeUp .55s ease both;
+}
+.card:nth-child(1){animation-delay:.04s}
+.card:nth-child(2){animation-delay:.12s}
+.card:nth-child(3){animation-delay:.20s}
+.card:nth-child(4){animation-delay:.28s}
+
+.card-head{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.card-icon{
+  width:36px;height:36px;min-width:36px;
+  border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+}
+.card-icon.blue{background:var(--blue-50);}
+.card-icon.slate{background:var(--slate-100);}
+.card-head h2{
+  font-family:'Nunito',sans-serif;
+  font-size:16px;font-weight:800;color:var(--slate-800);
+}
+
+/* OPEN BANNER */
+.open-banner{
+  background:linear-gradient(90deg,var(--green-50),#F0FDF4);
+  border:1.5px solid #6EE7B7;
+  border-radius:var(--rx-lg);
+  padding:14px 16px;
+  display:flex;align-items:center;gap:12px;
+}
+.ob-icon{
+  width:42px;height:42px;min-width:42px;
+  background:linear-gradient(135deg,var(--green-500),var(--green-600));
+  border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 14px rgba(16,185,129,.28);
+}
+.ob-text{flex:1;}
+.ob-text strong{display:block;font-size:13.5px;font-weight:700;color:#064E3B;margin-bottom:2px;}
+.ob-text p{font-size:12px;color:#047857;line-height:1.4;}
+.ob-btn{
+  background:var(--green-500);color:#fff;border:none;
+  border-radius:9px;padding:9px 16px;
+  font-size:12px;font-weight:700;
+  cursor:pointer;font-family:'DM Sans',sans-serif;
+  transition:all .2s;white-space:nowrap;
+  box-shadow:0 3px 10px rgba(16,185,129,.25);
+}
+.ob-btn:hover{background:var(--green-600);transform:translateY(-1px);}
+
+/* STEPS */
+.steps{display:flex;flex-direction:column;}
+.step{display:flex;gap:14px;padding:10px 0;position:relative;}
+.step:not(:last-child)::after{
+  content:'';position:absolute;
+  left:14px;top:40px;
+  width:2px;height:calc(100% - 16px);
+  background:linear-gradient(to bottom,var(--blue-500),var(--slate-200));
+  border-radius:2px;
+}
+.step-num{
+  width:30px;height:30px;min-width:30px;
+  background:linear-gradient(135deg,var(--blue-700),var(--blue-500));
+  color:#fff;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:800;
+  font-family:'Nunito',sans-serif;
+  box-shadow:0 3px 10px rgba(29,78,216,.28);
+}
+.step-body{flex:1;padding-top:4px;}
+.step-body strong{display:block;font-size:13.5px;font-weight:700;color:var(--slate-800);margin-bottom:3px;}
+.step-body p{font-size:12.5px;color:var(--slate-600);line-height:1.55;}
+
+/* MAIN CTA */
+.main-cta{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;padding:15px 20px;
+  background:linear-gradient(135deg,#1E3A8A 0%,#1D4ED8 55%,#0EA5E9 100%);
+  color:#fff;border:none;border-radius:var(--rx-lg);
+  font-size:15px;font-weight:700;
+  font-family:'DM Sans',sans-serif;
+  cursor:pointer;
+  transition:all .22s;
+  box-shadow:var(--sh-blue);
+  margin-bottom:10px;
+}
+.main-cta:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(29,78,216,.32);}
+
+.divider{height:1px;background:var(--slate-200);margin:16px 0;}
+.lbl{font-size:11px;font-weight:700;color:var(--slate-400);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;}
+
+/* STORE BUTTONS */
+.store-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.store-btn{
+  display:flex;align-items:center;gap:10px;
+  background:var(--slate-100);
+  border:1.5px solid var(--slate-200);
+  border-radius:var(--rx-lg);
+  padding:12px 14px;
+  text-decoration:none;color:inherit;
+  cursor:pointer;transition:all .22s;
+}
+.store-btn:hover{
+  border-color:var(--blue-500);
+  background:var(--blue-50);
+  transform:translateY(-2px);
+  box-shadow:var(--sh-blue);
+}
+.store-icon-wrap{
+  width:38px;height:38px;min-width:38px;
+  border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+.sb-label small{display:block;font-size:10px;color:var(--slate-400);font-weight:500;line-height:1;margin-bottom:2px;}
+.sb-label strong{display:block;font-size:13px;font-weight:700;color:var(--slate-800);line-height:1;}
+
+/* FEATURES */
+.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.feat{
+  background:var(--slate-100);border:1px solid var(--slate-200);
+  border-radius:var(--rx-lg);
+  padding:16px 12px;text-align:center;
+  transition:all .22s;
+}
+.feat:hover{border-color:var(--blue-500);background:var(--blue-50);transform:translateY(-2px);}
+.feat-icon{
+  width:44px;height:44px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 10px;
+}
+.fi1{background:linear-gradient(135deg,#DBEAFE,#BFDBFE);}
+.fi2{background:linear-gradient(135deg,#D1FAE5,#A7F3D0);}
+.fi3{background:linear-gradient(135deg,#FEF3C7,#FDE68A);}
+.fi4{background:linear-gradient(135deg,#FCE7F3,#FBCFE8);}
+.feat strong{display:block;font-size:13px;font-weight:700;color:var(--slate-800);margin-bottom:4px;}
+.feat p{font-size:11.5px;color:var(--slate-600);line-height:1.45;}
+
+/* FOOTER */
+.footer{
+  text-align:center;
+  padding:0 16px 28px;
+  font-size:11.5px;color:var(--slate-400);line-height:1.7;
+}
+.footer a{color:var(--blue-600);text-decoration:none;}
+
+/* DETECTING OVERLAY */
+.detect-overlay{
+  display:none;
+  position:fixed;inset:0;
+  background:rgba(15,23,42,.55);
+  backdrop-filter:blur(5px);
+  z-index:8888;
+  align-items:center;justify-content:center;
+}
+.detect-overlay.show{display:flex;}
+.detect-box{
+  background:#fff;border-radius:22px;
+  padding:30px 32px;text-align:center;
+  box-shadow:0 24px 64px rgba(0,0,0,.22);
+  max-width:290px;width:90%;
+  animation:popIn .3s cubic-bezier(.34,1.56,.64,1) both;
+}
+.detect-spinner{
+  width:44px;height:44px;margin:0 auto 16px;
+  border:3px solid var(--blue-50);
+  border-top-color:var(--blue-600);
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+.detect-box h3{font-family:'Nunito',sans-serif;font-size:17px;font-weight:800;color:var(--slate-800);margin-bottom:6px;}
+.detect-box p{font-size:12.5px;color:var(--slate-600);line-height:1.5;margin-bottom:16px;}
+.detect-cancel{
+  background:none;border:1.5px solid var(--slate-200);
+  border-radius:9px;padding:8px 20px;
+  font-size:12.5px;font-weight:600;color:var(--slate-600);
+  cursor:pointer;font-family:'DM Sans',sans-serif;
+  transition:all .2s;
+}
+.detect-cancel:hover{border-color:var(--slate-400);color:var(--slate-800);}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:28px;left:50%;
+  transform:translateX(-50%) translateY(80px);
+  background:var(--slate-900);color:#fff;
+  padding:11px 22px;border-radius:100px;
+  font-size:13px;font-weight:600;
+  display:flex;align-items:center;gap:8px;
+  transition:transform .32s cubic-bezier(.34,1.56,.64,1);
+  z-index:9999;white-space:nowrap;
+  box-shadow:0 8px 28px rgba(0,0,0,.22);
+  pointer-events:none;
+}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* ANIMATIONS */
+@keyframes fadeDown{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes popIn{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
+
+/* SMALL PHONES */
+@media(max-width:380px){
+  .hero-title{font-size:25px;}
+  .store-grid{grid-template-columns:1fr;}
+  .feat-grid{grid-template-columns:1fr;}
+  .phone{width:140px;height:260px;}
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ══ HERO / LEFT SIDEBAR ══ -->
+  <header class="hero">
+    <nav class="nav">
+      <div class="logo-wrap">
+        <img class="logo-img"
+          src="https://servefamily.com/_next/image?url=%2FlogoHeader.png&w=256&q=75"
+          alt="Serve Family"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <span class="logo-fallback">Serve Family</span>
+      </div>
+      <div class="nav-badge">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
+        Referral Invite
+      </div>
+    </nav>
+
+    <div class="hero-body">
+      <div class="invite-chip">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="#FCD34D" stroke="#FCD34D" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        You've been invited!
+      </div>
+      <h1 class="hero-title">Join <span class="hl">Serve Family</span><br>and Get Started</h1>
+      <p class="hero-sub">Your friend shared this special invite link with you. Install the app and sign up today!</p>
+      <div class="phone-visual">
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-app-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+            </svg>
+          </div>
+          <div class="phone-app-label">Serve Family</div>
+          <button class="phone-cta-btn" onclick="handleOpenApp()">Open App</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══ RIGHT PANEL ══ -->
+  <div class="right-panel">
+    <main class="main">
+
+      <!-- Already installed banner -->
+      <div class="open-banner">
+        <div class="ob-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+            <polyline points="2 17 12 22 22 17"/>
+            <polyline points="2 12 12 17 22 12"/>
+          </svg>
+        </div>
+        <div class="ob-text">
+          <strong>App already installed?</strong>
+          <p>Open Serve Family directly with one tap</p>
+        </div>
+        <button class="ob-btn" onclick="handleOpenApp()">Open App</button>
+      </div>
+
+      <!-- Steps -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-icon blue">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+              <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+            </svg>
+          </div>
+          <h2>How to Get Started</h2>
+        </div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <strong>Install the Serve Family app</strong>
+              <p>Download from Google Play or the App Store on your device.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <strong>Open the app &amp; sign up</strong>
+              <p>Your referral code is applied automatically. Create your account.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <strong>Start your journey</strong>
+              <p>Welcome to Serve Family — connect, grow, and earn rewards together!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Install / Open -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-icon blue">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
+            </svg>
+          </div>
+          <h2>Install or Open App</h2>
+        </div>
+
+        <button class="main-cta" onclick="handleOpenApp()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+            <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+          Open Serve Family App
+        </button>
+
+        <div class="divider"></div>
+        <p class="lbl">Not installed yet? Download below</p>
+
+        <div class="store-grid">
+          <!-- Google Play -->
+          <a class="store-btn" href="https://play.google.com/store/apps/details?id=com.servefamily.app" target="_blank" rel="noopener">
+            <div class="store-icon-wrap" style="background:#fff;border:1.5px solid #E2E8F0;">
+              <svg width="22" height="22" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                <path d="M55.1 80.2L274 256 55.1 431.8C50.9 428.5 48 423.2 48 417.3V94.7c0-5.9 2.9-11.2 7.1-14.5z" fill="#32BBFF"/>
+                <path d="M299.4 231.8L274 256l25.4 24.2 54.2-29.9c15.4-8.5 15.4-22.1 0-30.6z" fill="#FFD400"/>
+                <path d="M55.1 431.8L274 256l25.4 24.2L70.7 406.8c-5.9.4-11.4-1.5-15.6-4.8z" fill="#FF3333"/>
+                <path d="M55.1 80.2c4.2-3.3 9.7-5.2 15.6-4.8L299.4 202 274 226.2z" fill="#00E676"/>
+              </svg>
+            </div>
+            <div class="sb-label">
+              <small>Get it on</small>
+              <strong>Google Play</strong>
+            </div>
+          </a>
+
+          <!-- App Store -->
+          <a class="store-btn" href="https://apps.apple.com/app/servefamily" target="_blank" rel="noopener">
+            <div class="store-icon-wrap" style="background:#000;">
+              <svg width="20" height="20" viewBox="0 0 814 1000" xmlns="http://www.w3.org/2000/svg" fill="#fff">
+                <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-43.4-150.3-109.2C81.5 726 40 589.3 40 461.3c0-202.2 131.9-309 261.7-309 70 0 127.9 45.4 172.2 45.4 42.3 0 109-48.3 186.3-48.3 30.3 0 108.2 2.6 165.9 87.3zm-127.8-190.1c28.6-35.9 49.4-86.1 49.4-136.3 0-7.1-.6-14.3-1.9-20.1-46.9 1.9-103 31.2-136.8 72.1-26.1 29.2-50.8 78.1-50.8 129.6 0 7.7 1.3 15.5 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 42.3 0 96.9-28.5 124.6-64.7z"/>
+              </svg>
+            </div>
+            <div class="sb-label">
+              <small>Download on the</small>
+              <strong>App Store</strong>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- Features -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-icon slate">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+          </div>
+          <h2>Why Serve Family?</h2>
+        </div>
+        <div class="feat-grid">
+          <div class="feat">
+            <div class="feat-icon fi1">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+              </svg>
+            </div>
+            <strong>Family First</strong>
+            <p>Designed to connect families and grow together</p>
+          </div>
+          <div class="feat">
+            <div class="feat-icon fi2">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+              </svg>
+            </div>
+            <strong>Community</strong>
+            <p>Be part of a caring, supportive community</p>
+          </div>
+          <div class="feat">
+            <div class="feat-icon fi3">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/>
+                <line x1="12" y1="22" x2="12" y2="7"/>
+                <path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/>
+                <path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/>
+              </svg>
+            </div>
+            <strong>Rewards</strong>
+            <p>Earn rewards by inviting friends and family</p>
+          </div>
+          <div class="feat">
+            <div class="feat-icon fi4">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#DB2777" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+            </div>
+            <strong>Secure</strong>
+            <p>Your data stays safe and private, always</p>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <footer class="footer">
+      <p>© 2025 Serve Family &nbsp;·&nbsp; <a href="#">Privacy Policy</a> &nbsp;·&nbsp; <a href="#">Terms of Service</a></p>
+      <p style="margin-top:4px;font-size:10.5px;">This is a referral invite link. By signing up you agree to our terms.</p>
+    </footer>
+  </div><!-- /.right-panel -->
+
+</div><!-- /.shell -->
+
+<!-- Detecting overlay -->
+<div class="detect-overlay" id="detectOverlay">
+  <div class="detect-box">
+    <div class="detect-spinner"></div>
+    <h3>Opening Serve Family…</h3>
+    <p>If the app doesn't open, we'll redirect you to the store automatically.</p>
+    <button class="detect-cancel" id="detectCancel">Cancel</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toastMsg">Done!</span>
+</div>
+
+<script>
+(function () {
+  /* ─── Config ─── */
+  var REFERRAL_BASE = 'https://api.servefamily.com/t/signup.html';
+  var ANDROID_URL   = 'https://play.google.com/store/apps/details?id=com.servefamily.app';
+  var IOS_URL       = 'https://apps.apple.com/app/servefamily';
+  /* Android intent:// is the most reliable way to deep-link in Chrome */
+  var ANDROID_INTENT = 'intent://open#Intent;scheme=servefamily;package=com.servefamily.app;S.browser_fallback_url=' + encodeURIComponent(ANDROID_URL) + ';end';
+  var IOS_SCHEME    = 'servefamily://';
+
+  /* ─── Ref code ─── */
+  var params  = new URLSearchParams(window.location.search);
+  var refCode = params.get('ref') || 'CVA97KUJ';
+  var FULL_URL = REFERRAL_BASE + '?ref=' + encodeURIComponent(refCode);
+
+  /* ─── Device ─── */
+  var ua        = navigator.userAgent || '';
+  var isAndroid = /android/i.test(ua);
+  var isIOS     = /iphone|ipad|ipod/i.test(ua);
+  var isMobile  = isAndroid || isIOS;
+
+  /* ─── Overlay helpers ─── */
+  var overlay    = document.getElementById('detectOverlay');
+  var cancelBtn  = document.getElementById('detectCancel');
+  var detectTimer = null;
+
+  function showOverlay() { overlay.classList.add('show'); }
+  function hideOverlay() { overlay.classList.remove('show'); }
+
+  cancelBtn.addEventListener('click', function () {
+    clearTimeout(detectTimer);
+    hideOverlay();
+  });
+
+  /* ─── Toast ─── */
+  function showToast(msg) {
+    var el = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    el.classList.add('show');
+    clearTimeout(el._t);
+    el._t = setTimeout(function () { el.classList.remove('show'); }, 3000);
+  }
+
+  /* ─── Main open-app handler ─── */
+  window.handleOpenApp = function () {
+
+    /* Desktop: open referral link in new tab */
+    if (!isMobile) {
+      window.open(FULL_URL, '_blank');
+      showToast('Opening Serve Family signup…');
+      return;
+    }
+
+    var appOpened   = false;
+    var didRedirect = false;
+
+    showOverlay();
+
+    /* ── Cleanup ── */
+    function cleanup() {
+      document.removeEventListener('visibilitychange', onVisChange);
+      document.removeEventListener('webkitvisibilitychange', onVisChange);
+      window.removeEventListener('blur', onBlur);
+      window.removeEventListener('pagehide', onPageHide);
+      clearTimeout(detectTimer);
+      hideOverlay();
+    }
+
+    /* ── Success signals (app launched → browser goes background) ── */
+    function onVisChange() {
+      if (document.hidden || document.webkitHidden) {
+        appOpened = true;
+      }
+    }
+    function onBlur()     { appOpened = true; }
+    function onPageHide() { appOpened = true; }
+
+    document.addEventListener('visibilitychange', onVisChange);
+    document.addEventListener('webkitvisibilitychange', onVisChange);
+    window.addEventListener('blur', onBlur);
+    window.addEventListener('pagehide', onPageHide, { once: true });
+
+    /* ── Fire deep link ── */
+    if (isAndroid) {
+      /* intent:// carries a built-in fallback URL for Chrome */
+      window.location.href = ANDROID_INTENT;
+    } else {
+      /* iOS custom scheme */
+      window.location.href = IOS_SCHEME;
+    }
+
+    /* ── Hard fallback after 2.5 s ── */
+    detectTimer = setTimeout(function () {
+      if (!appOpened && !didRedirect) {
+        didRedirect = true;
+        cleanup();
+        if (isAndroid) {
+          window.location.href = ANDROID_URL;
+        } else if (isIOS) {
+          window.location.href = IOS_URL;
+        }
+      }
+    }, 2500);
+
+    /* ── If page gets focus back quickly → app not installed ── */
+    setTimeout(function () {
+      window.addEventListener('focus', function onFocusBack() {
+        window.removeEventListener('focus', onFocusBack);
+        setTimeout(function () {
+          if (!appOpened && !didRedirect) {
+            didRedirect = true;
+            cleanup();
+            if (isAndroid) {
+              window.location.href = ANDROID_URL;
+            } else if (isIOS) {
+              window.location.href = IOS_URL;
+            }
+          }
+        }, 300);
+      });
+    }, 500);
+  };
+
+  /* ─── Auto-open on mobile when ?ref= is present ─── */
+  if (isMobile && params.has('ref')) {
+    window.addEventListener('load', function () {
+      setTimeout(window.handleOpenApp, 900);
+    });
+  }
+
+}());
+</script>
+</body>
+</html>

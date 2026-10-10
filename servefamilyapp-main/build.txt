@@ -1,0 +1,15 @@
+npm install
+
+npx expo prebuild --platform ios
+
+cd ios && pod install && cd ..
+
+open ios/*.xcworkspace
+
+
+cd /Users/savindajayasekara/My-Workzone/serverfamily
+
+npm install
+npx expo prebuild --platform ios
+cd ios && pod install && cd ..
+npx expo run:ios

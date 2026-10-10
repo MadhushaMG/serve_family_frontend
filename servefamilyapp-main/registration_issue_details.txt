@@ -1,0 +1,81 @@
+================================================================================
+REGISTRATION SERVER ERROR - DETAILED ANALYSIS AND FIX PLAN (SINGLISH)
+================================================================================
+
+1. ISSUE EKA MOKAKDA? (WHAT IS THE ISSUE?)
+--------------------------------------------------------------------------------
+User mobile app eke Register screen ekata gihin name, email, password daala 
+register button eka click karalama me error eka enawa:
+
+"Error: Server Error: Server error during registration
+    at handleError (address at index.android.bundle:1:1451884)..."
+
+Meka mawa pennanne React Native Android app eka app eken backend server ekata 
+request ekak yawapu welawe server eken error ekak aawama frontend app eke 
+handleError function eka haraha throw wena error ekak.
+
+
+2. MEKA ENNE KOHENDA? (WHERE DOES IT COME FROM?)
+--------------------------------------------------------------------------------
+- Frontend Code: "src/api/apiClient.ts" file eke thiyena "handleError" function 
+  ekena me error message eka create karanne (Lines 143-145).
+- Backend API Endpoint: Mobile app eken registration data yawanne 
+  "https://api.servefamily.com/api/auth/register" (AUTH_ENDPOINTS.REGISTER) 
+  velata.
+- Process: User signup request eka yawwahama Backend Server eken HTTP Status 500 
+  (Internal Server Error) ekak ekka JSON response ekak enawa:
+  { "message": "Server error during registration" }
+  Meka catch karala apiClient.ts eken Error object ekak throw කරනවා.
+
+
+3. AI MEHEMA ERROR EKAK ENNE? (WHY DOES THIS HAPPEN?)
+--------------------------------------------------------------------------------
+Backend Server (api.servefamily.com) eke code execution ekedi unhandled exception 
+ekak ho error ekak ena nisa thamai HTTP 500 error eka enne. Pradhana hethu 4k 
+wiyaha yuthuyi:
+
+[Hethuwa 1] Email / Mailer Service Issue:
+User register wuna gaman verification email (OTP code) ekak yawanama backend eke 
+SMTP / Nodemailer / SendGrid mail service configuration ekak fail wela backend 
+code eka crash wena ekah.
+
+[Hethuwa 2] Empty Referral Code Payload:
+Frontend "useSignUp.ts" eken referralCode field eka enter kale nathnam empty 
+string ("") ekak bkd ekata yanawa. Backend DB query ekedi ho validation ekedi 
+null venawata empty string labunama error ekak enna puluwan.
+
+[Hethuwa 3] Duplicate Email / Existing User Handling:
+User ge email eka kalin register wela thibbata backend eken HTTP 400 (Bad Request) 
+ho HTTP 409 (Conflict) awanawata wenuwata, uncaught error ekak nisa 500 Server 
+Error ekak enawa wenna puluwan.
+
+[Hethuwa 4] Database / Server Environment Configuration:
+Backend server eke Database connection ekak ho environment variables (e.g., JWT 
+secret, Mail credentials) missing ho error thibima.
+
+
+4. MEKA FIX KARANNE KOHOMADA? (STEP-BY-STEP FIX PLAN)
+--------------------------------------------------------------------------------
+[Step 1] Backend Server Logs Check Kireema (Primary Fix):
+- Backend Server (api.servefamily.com) eke logs check karala "/api/auth/register" 
+  endpoint ekedi apu exact error stack trace eka moko kiyla balanna. 
+  (Email failure da, DB error da, missing env variable da kiyala hariyatama 
+  thahawuru karaganeema).
+
+[Step 2] Frontend Request Payload Sanitization:
+- Frontend "src/hooks/Usesignup.ts" saha "src/Services/AuthService.ts" wala 
+  referralCode eka trim karala empty thiyenam (""), eka empty string nethuwa 
+  "null" widihata backend ekata yawanawada kiyala thahawuru kireema:
+  (e.g., referralCode: referralCode.trim() !== "" ? referralCode.trim() : null)
+
+[Step 3] Backend Exception Handling & Status Codes Fix:
+- Backend code eke email duplicate wena awasthawa ho invalid input waladi 500 
+  Server Error awanawa wenuwata proper HTTP status code (400 / 409) saha 
+  clear error message ekak (e.g. "Email already in use") ewanna backend 
+  validation fix kireema.
+
+[Step 4] Frontend Error Handling Improvement:
+- Frontend "apiClient.ts" saha "useSignUp" hook eke 500 Server Error ekak 
+  aawath app eka crash wenne nethuwa, user ta thami maatha thiyena error 
+  alert/toast message ekak pennala handle kireema.
+================================================================================

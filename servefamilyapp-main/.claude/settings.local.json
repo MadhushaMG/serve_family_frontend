@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem -Path \"D:\\\\LocationTrackerApp\\\\app\" -Recurse -Depth 1 | Where-Object {$_.Extension -eq \".tsx\"} | Select-Object Name, DirectoryName)",
+      "Bash(npx tsc *)",
+      "Bash(python3 -c \"from PIL import Image; im=Image.open\\('NewAppIcon.jpeg'\\); print\\(im.size, im.mode\\)\")",
+      "Bash(grep -i \"^sharp$\")",
+      "Bash(magick -version)",
+      "Bash(where convert *)",
+      "PowerShell(& \"C:\\\\Users\\\\stf\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--LocationTrackerApp\\\\e0226633-67b5-45d8-9ee9-4343684c11f3\\\\scratchpad\\\\gen-icons.ps1\")",
+      "Bash(dir D:LocationTrackerApp *)",
+      "Bash(dir \"D:\\\\LocationTrackerApp\\\\src\\\\assets\\\\logo\")",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
+      "PowerShell(npx expo prebuild --clean --platform android --no-install)",
+      "Bash(findstr *)"
+    ]
+  }
+}

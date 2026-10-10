@@ -1,0 +1,42 @@
+node_modules/
+dist/
+
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+serviceAccountKey.json
+/google-services.json
+!servefamilyapp-main/google-services.json
+!servefamilyapp-main/GoogleService-Info.plist
+*.pem
+*.key
+
+# Database exports and runtime data
+*.sql
+tracker_logs/
+geofence_logs.txt
+uploads/
+*.log
+
+# Local backup and scratch copies
+*.save
+*.save.*
+*.bak
+*.ts_
+*.t
+*.cl
+*.tscl
+*.tsc
+from.save
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.gradle_home/
+.prebuild-backup/
+.keystore_backup/
+dist/
+scratch/build_err.txt
+scratch/eas_log.txt

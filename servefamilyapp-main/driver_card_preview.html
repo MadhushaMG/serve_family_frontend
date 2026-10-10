@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Driver Card Preview</title>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: #f3f4f6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+      gap: 30px;
+    }
+
+    .container-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: -10px;
+    }
+
+    /* Card Box Container */
+    .popover-container {
+      width: 100%;
+      max-width: 420px;
+      background-color: #ffffff;
+      border-radius: 24px;
+      padding: 20px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      position: relative;
+    }
+
+    .popover-handle {
+      width: 40px;
+      height: 4px;
+      background-color: #e5e7eb;
+      border-radius: 2px;
+      margin: 0 auto 16px auto;
+    }
+
+    .popover-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: #f3f4f6;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #4b5563;
+    }
+
+    /* Status Badge */
+    .status-badge {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+
+    .status-dot.online {
+      background-color: #16a34a;
+      box-shadow: 0 0 8px rgba(22, 163, 74, 0.6);
+    }
+
+    .status-dot.offline {
+      background-color: #ef4444;
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+    }
+
+    .status-text {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status-text.online {
+      color: #15803d;
+    }
+
+    .status-text.offline {
+      color: #dc2626;
+    }
+
+    /* Popover Header */
+    /* Driver Card Structured 3-Line Layout */
+    .popover-header {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .line-1-driver-code {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .driver-name-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .avatar-img {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #e5e7eb;
+    }
+
+    .avatar-placeholder {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background-color: #f3f4f6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #e5e7eb;
+      color: #6b7280;
+    }
+
+    .driver-name-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #111827;
+    }
+
+    .code-badge {
+      background-color: #f3f4f6;
+      border: 1px solid #d1d5db;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      color: #1f2937;
+    }
+
+    .line-2-fare {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 10px;
+      padding: 8px 12px;
+      width: 100%;
+    }
+
+    .fare-lbl {
+      font-size: 11px;
+      color: #166534;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .fare-val {
+      font-size: 15px;
+      font-weight: 800;
+      color: #15803d;
+    }
+
+    .line-3-details {
+      display: flex;
+      align-items: center;
+      background-color: #f9fafb;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #4b5563;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+    }
+
+    /* Stats Row (For Online) */
+    .stats-row {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background-color: #f9fafb;
+      border-radius: 16px;
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+
+    .stat-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .stat-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: #111827;
+      margin-top: 4px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: #6b7280;
+      font-weight: 500;
+    }
+
+    .stat-divider {
+      width: 1px;
+      height: 28px;
+      background-color: #e5e7eb;
+    }
+
+    /* Offline Container */
+    .offline-box {
+      margin-top: 8px;
+      background-color: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .offline-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      color: #991b1b;
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .offline-header i {
+      margin-right: 6px;
+    }
+
+    .vehicle-details-card {
+      background-color: #ffffff;
+      border: 1px solid #fca5a5;
+      border-radius: 12px;
+      padding: 12px;
+      margin: 10px 0;
+    }
+
+    .details-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: 6px;
+    }
+
+    .detail-item {
+      font-size: 12px;
+      color: #4b5563;
+      margin-top: 4px;
+    }
+
+    .detail-item strong {
+      color: #111827;
+    }
+
+    .offline-msg {
+      font-size: 12px;
+      color: #7f1d1d;
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+
+    /* Buttons */
+    .btn-call {
+      width: 100%;
+      background-color: #dc2626;
+      color: #ffffff;
+      border: none;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background-color 0.2s;
+    }
+
+    .btn-call:hover {
+      background-color: #b91c1c;
+    }
+
+    .actions-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .btn-close {
+      flex: 1;
+      background-color: #f3f4f6;
+      color: #374151;
+      border: none;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-book {
+      flex: 2;
+      background-color: #16a34a;
+      color: #ffffff;
+      border: none;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .phone-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #16a34a;
+      font-weight: 700;
+      font-size: 13px;
+      margin-bottom: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h2 class="container-title">1. Online Driver Card Preview</h2>
+
+  <!-- ONLINE DRIVER CARD -->
+  <div class="popover-container">
+    <div class="popover-handle"></div>
+    <button class="popover-close"><i data-lucide="x" style="width:18px;height:18px;"></i></button>
+
+    <!-- Status Badge -->
+    <div class="status-badge">
+      <div class="status-dot online"></div>
+      <span class="status-text online">ONLINE ● AVAILABLE</span>
+    </div>
+
+    <!-- Header (3 Line Structured Layout) -->
+    <div class="popover-header">
+      <!-- Line 1: Driver Name (left) & Code (right) -->
+      <div class="line-1-driver-code">
+        <div class="driver-name-group">
+          <img class="avatar-img" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" alt="Driver Avatar" />
+          <span class="driver-name-title">SCAF3</span>
+        </div>
+        <div class="code-badge">QJ50067</div>
+      </div>
+
+      <!-- Line 2: Estimated Fare on one line -->
+      <div class="line-2-fare">
+        <span class="fare-lbl">Estimated Fare</span>
+        <span class="fare-val">LKR 276.00</span>
+      </div>
+
+      <!-- Line 3: 3 Other data items on a single line -->
+      <div class="line-3-details">
+        🚘 Red &nbsp;&bull;&nbsp; Tuk &nbsp;&bull;&nbsp; 💺 3 Seats
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+      <div class="stat-box">
+        <i data-lucide="map-pin" style="width:16px;height:16px;color:#6b7280;"></i>
+        <span class="stat-value">2.2 km</span>
+        <span class="stat-label">Away</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-box">
+        <i data-lucide="clock" style="width:16px;height:16px;color:#6b7280;"></i>
+        <span class="stat-value">5 min</span>
+        <span class="stat-label">ETA</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-box">
+        <i data-lucide="navigation" style="width:16px;height:16px;color:#6b7280;"></i>
+        <span class="stat-value">4.5 km</span>
+        <span class="stat-label">Trip</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-box">
+        <i data-lucide="hourglass" style="width:16px;height:16px;color:#6b7280;"></i>
+        <span class="stat-value">12 min</span>
+        <span class="stat-label">Duration</span>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions-row">
+      <button class="btn-close">Close</button>
+      <button class="btn-book"><i data-lucide="car" style="width:16px;height:16px;"></i> Book Now</button>
+    </div>
+  </div>
+
+
+  <h2 class="container-title" style="margin-top: 20px;">2. Offline Driver Card Preview</h2>
+
+  <!-- OFFLINE DRIVER CARD -->
+  <div class="popover-container">
+    <div class="popover-handle"></div>
+    <button class="popover-close"><i data-lucide="x" style="width:18px;height:18px;"></i></button>
+
+    <!-- Status Badge -->
+    <div class="status-badge">
+      <div class="status-dot offline"></div>
+      <span class="status-text offline">OFFLINE ● CALL TO BOOK</span>
+    </div>
+
+    <!-- Header (3 Line Structured Layout for Offline) -->
+    <div class="popover-header">
+      <!-- Line 1: Driver Name (left) & Code (right) -->
+      <div class="line-1-driver-code">
+        <div class="driver-name-group">
+          <div class="avatar-placeholder">
+            <i data-lucide="user" style="width:22px;height:22px;"></i>
+          </div>
+          <span class="driver-name-title">SCAF3</span>
+        </div>
+        <div class="code-badge">QJ50067</div>
+      </div>
+
+      <!-- Line 3: 3 Other data items on a single line -->
+      <div class="line-3-details">
+        🚘 Red &nbsp;&bull;&nbsp; Tuk &nbsp;&bull;&nbsp; 💺 3 Seats
+      </div>
+    </div>
+
+    <!-- Offline Box -->
+    <div class="offline-box">
+      <div class="offline-header">
+        <i data-lucide="info" style="width:18px;height:18px;"></i>
+        <span>Driver is Offline</span>
+      </div>
+
+      <!-- Vehicle Details Card -->
+      <div class="vehicle-details-card">
+        <div class="details-title">🚗 Vehicle Details:</div>
+        <div class="detail-item">• Reg Number: <strong>QJ50067</strong></div>
+        <div class="detail-item">• Type: <strong>Tuk</strong> (hire)</div>
+        <div class="detail-item">• Color: <strong>Red</strong></div>
+        <div class="detail-item">• Seats: <strong>3 Seats</strong></div>
+      </div>
+
+      <div class="offline-msg">
+        This driver is currently offline. Please call the driver directly using the button below to discuss your trip and fare details.
+      </div>
+
+      <a href="tel:0714865201" class="btn-call">
+        <i data-lucide="phone-call" style="width:18px;height:18px;"></i>
+        <span>Call Driver (0714865201)</span>
+      </a>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>

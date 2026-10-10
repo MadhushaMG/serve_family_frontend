@@ -1,0 +1,2334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <base href="/admin/" />
+  <title>Serve Family — Admin Dashboard</title>
+  <meta name="description" content="Serve Family Admin Dashboard — Fleet, Users & Revenue Management" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <!-- MapLibre GL JS — Open source, high-performance map engine (no token required) -->
+  <link href="maplibre-gl.css" rel="stylesheet" onerror="this.onerror=null;this.href='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css'" />
+  <script src="maplibre-gl.js" onerror="this.onerror=null;this.src='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js'"></script>
+  <script>
+    if (typeof maplibregl !== 'undefined') {
+      window.mapboxgl = window.maplibregl;
+    }
+  </script>
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link rel="stylesheet" href="style.css?v=20260924_8" />
+  <style id="trip-details-modal-styles">
+    /* ─── Dedicated Trip Details Modal Styles ─── */
+    .trip-grid-2col {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr !important;
+      gap: 16px !important;
+      margin-top: 16px !important;
+    }
+    @media (max-width: 768px) {
+      .trip-grid-2col {
+        grid-template-columns: 1fr !important;
+      }
+    }
+
+    .trip-card-box {
+      background: #FFFFFF !important;
+      border: 1px solid #E2E8F0 !important;
+      border-radius: 12px !important;
+      padding: 18px !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+      box-sizing: border-box !important;
+    }
+
+    .trip-card-box-header {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      margin-bottom: 14px !important;
+      padding-bottom: 10px !important;
+      border-bottom: 1px solid #F1F5F9 !important;
+    }
+
+    .trip-card-box-title {
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      color: #475569 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.5px !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+    }
+
+    .trip-route-container {
+      background: #FFFFFF !important;
+      border: 1px solid #E2E8F0 !important;
+      border-radius: 12px !important;
+      padding: 18px !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+      box-sizing: border-box !important;
+    }
+
+    .trip-route-point {
+      display: flex !important;
+      align-items: flex-start !important;
+      gap: 14px !important;
+    }
+
+    .trip-route-point-pickup .trip-point-icon {
+      width: 34px !important;
+      height: 34px !important;
+      border-radius: 50% !important;
+      background: #ECFDF5 !important;
+      border: 2px solid #10B981 !important;
+      color: #059669 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      flex-shrink: 0 !important;
+      margin-top: 2px !important;
+    }
+
+    .trip-route-point-drop .trip-point-icon {
+      width: 34px !important;
+      height: 34px !important;
+      border-radius: 50% !important;
+      background: #FEF2F2 !important;
+      border: 2px solid #EF4444 !important;
+      color: #DC2626 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      flex-shrink: 0 !important;
+      margin-top: 2px !important;
+    }
+
+    .trip-route-connector {
+      margin-left: 16px !important;
+      border-left: 2px dashed #CBD5E1 !important;
+      padding: 10px 0 10px 30px !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 10px !important;
+    }
+
+    .trip-dist-pill {
+      background: #EFF6FF !important;
+      border: 1px solid #BFDBFE !important;
+      color: #1D4ED8 !important;
+      font-size: 12px !important;
+      font-weight: 700 !important;
+      padding: 3px 10px !important;
+      border-radius: 12px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 5px !important;
+    }
+
+    .trip-gmaps-link {
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      color: #2563EB !important;
+      text-decoration: none !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 4px !important;
+      margin-top: 5px !important;
+    }
+
+    .trip-gmaps-link:hover {
+      text-decoration: underline !important;
+    }
+
+    .trip-kv-row {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      padding: 8px 0 !important;
+      border-bottom: 1px dashed #F1F5F9 !important;
+      font-size: 13px !important;
+    }
+
+    .trip-kv-row:last-child {
+      border-bottom: none !important;
+    }
+
+    .trip-kv-label {
+      color: #64748B !important;
+      font-weight: 500 !important;
+    }
+
+    .trip-kv-val {
+      color: #0F172A !important;
+      font-weight: 700 !important;
+      text-align: right !important;
+    }
+
+    .btn-view-trip {
+      padding: 5px 12px !important;
+      background: #EEF2FF !important;
+      color: #4F46E5 !important;
+      border: 1px solid #C7D2FE !important;
+      border-radius: 6px !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      cursor: pointer !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 5px !important;
+      transition: all 0.15s ease !important;
+    }
+
+    .btn-view-trip:hover {
+      background: #E0E7FF !important;
+      border-color: #A5B4FC !important;
+      color: #3730A3 !important;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== LOGIN PAGE ===== -->
+<div id="login-page" class="page active">
+  <div class="login-bg">
+    <div class="login-container">
+      <div class="login-card">
+        <div class="login-logo">
+          <img src="logo.png" alt="ServeFamily Logo" style="width:52px;height:52px;object-fit:contain;border-radius:12px;background:#fff;padding:3px;border:1px solid #E2E8F0;box-shadow:0 3px 8px rgba(0,0,0,0.05);" />
+          <div>
+            <h1 class="login-title">Serve Family</h1>
+            <p class="login-subtitle">Admin Portal</p>
+          </div>
+        </div>
+        <form id="login-form" class="login-form" onsubmit="handleLogin(event); return false;">
+          <div class="form-group">
+            <label for="email">Admin Email</label>
+            <div class="input-wrapper">
+              <span class="input-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
+              <input type="email" id="email" value="admin@servefamily.com" placeholder="admin@servefamily.com" required autocomplete="email" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <div class="input-wrapper">
+              <span class="input-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+              <input type="password" id="password" value="admin123" placeholder="••••••••" required autocomplete="current-password" />
+              <button type="button" class="eye-btn" onclick="togglePassword()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+            </div>
+          </div>
+          <div id="login-error" class="error-msg hidden"></div>
+          <button type="submit" class="btn-primary btn-login" id="login-btn">
+            <span class="btn-text">Sign In to Dashboard</span>
+            <span class="btn-loader hidden"><svg class="spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg></span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== DASHBOARD PAGE ===== -->
+<div id="dashboard-page" class="page">
+
+  <!-- Mobile Sidebar Backdrop Overlay -->
+  <div id="sidebar-backdrop" class="sidebar-backdrop" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <img src="logo.png" alt="ServeFamily Logo" style="width:34px;height:34px;object-fit:contain;border-radius:8px;background:#fff;padding:2px;border:1px solid rgba(255,255,255,0.2);flex-shrink:0;" />
+        <div class="sidebar-brand"><span class="brand-name">Serve Family</span><span class="brand-role">Admin Portal</span></div>
+      </div>
+      <button class="sidebar-toggle" onclick="toggleSidebar()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="#" class="nav-item active" id="nav-dashboard" onclick="switchTab('dashboard');return false;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span>Dashboard</span>
+      </a>
+
+      <div class="nav-section-label">Taxi Services</div>
+      <a href="#" class="nav-item" id="nav-taxi-approve" onclick="switchTab('taxi-approve');return false;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        <span>Taxi Approval</span>
+        <span class="nav-badge" id="pending-badge" style="display:none">0</span>
+      </a>
+      <a href="#" class="nav-item" id="nav-taxi-manage" onclick="switchTab('taxi-manage');return false;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        <span>Manage Taxis</span>
+      </a>
+      <a href="#" class="nav-item" id="nav-fleet-map" onclick="switchTab('fleet-map');return false;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+        <span>Live Fleet Map</span>
+      </a>
+      <a href="#" class="nav-item" id="nav-coverage" onclick="switchTab('coverage');return false;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 5.4 7 11.5 7.4 11.8a1 1 0 0 0 1.2 0c.4-.3 7.4-6.4 7.4-11.8a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/><circle cx="12" cy="10" r="6" stroke-dasharray="2 2"/></svg>
+        <span>Coverage Zones</span>
+        <span class="nav-badge" id="coverage-badge" style="background:#10B981;color:#fff;display:inline-block;">Active</span>
+      </a>
+      <a href="#" class="nav-item" id="nav-agents" onclick="switchTab('agents');return false;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Agents & Regional</span>
+      </a>
+      <a href="#" class="nav-item" id="nav-vehicle-types" onclick="switchTab('vehicle-types');return false;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <span>Vehicle Types</span>
+      </a>
+      <a href="#" class="nav-item" id="nav-trips" onclick="switchTab('trips');return false;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg>
+        <span>Trips & Bookings</span>
+      </a>
+      <a href="#" class="nav-item super-admin-only" id="nav-wallets" onclick="switchTab('wallets');return false;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        <span>Driver Wallets</span>
+      </a>
+
+      <div class="nav-section-label super-admin-only">Operations & Comms</div>
+      <a href="#" class="nav-item super-admin-only" id="nav-broadcast" onclick="switchTab('broadcast');return false;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span>Broadcast Push & SMS</span>
+      </a>
+
+      <div class="nav-section-label super-admin-only">Serve Family</div>
+      <a href="#" class="nav-item super-admin-only" id="nav-users" onclick="switchTab('users');return false;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+        <span>Serve Family Users</span>
+      </a>
+      <a href="#" class="nav-item super-admin-only" id="nav-circles" onclick="switchTab('circles');return false;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="12" r="4"/><circle cx="18" cy="8" r="3"/><circle cx="18" cy="16" r="3"/><line x1="13" y1="10.5" x2="15" y2="9"/><line x1="13" y1="13.5" x2="15" y2="15"/></svg>
+        <span>Family Circles</span>
+      </a>
+
+      <div class="nav-section-label super-admin-only">Monetization</div>
+      <a href="#" class="nav-item super-admin-only" id="nav-plans" onclick="switchTab('plans');return false;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        <span>Subscription Plans</span>
+      </a>
+      <a href="#" class="nav-item super-admin-only" id="nav-revenue" onclick="switchTab('revenue');return false;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <span>Revenue & Income</span>
+      </a>
+      <a href="#" class="nav-item super-admin-only" id="nav-referrals" onclick="switchTab('referrals');return false;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        <span>Referrals Program</span>
+      </a>
+
+      <div class="nav-section-label super-admin-only">System</div>
+      <a href="#" class="nav-item super-admin-only" id="nav-audit" onclick="switchTab('audit');return false;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span>Audit Logs</span>
+      </a>
+      <a href="#" class="nav-item super-admin-only" id="nav-system-settings" onclick="switchTab('system-settings');return false;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>System Settings</span>
+      </a>
+      <a href="#" class="nav-item super-admin-only" id="nav-admins" onclick="switchTab('admins');return false;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>Admin Management</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-profile">
+        <div class="user-avatar" id="user-avatar-char">A</div>
+        <div class="user-info"><span class="user-name" id="display-name">Admin</span><span class="user-role" id="user-role-badge">Super Admin</span></div>
+      </div>
+      <button class="logout-btn" onclick="handleLogout()" title="Sign out"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <div class="breadcrumb">
+          <span class="breadcrumb-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+          <span id="breadcrumb-text">Dashboard Overview</span>
+        </div>
+      </div>
+      <div class="topbar-right" style="display:flex;align-items:center;gap:12px;">
+        <div class="greeting-bar">
+          <span class="greeting-text" id="greeting-text">Good morning</span>,
+          <span class="greeting-name" id="greeting-name">Admin</span>
+          <span class="greeting-sep">·</span>
+          <span class="clock-time" id="clock-time">--:--</span>
+          <span class="clock-date" id="clock-date"></span>
+        </div>
+        <button id="btn-sound-toggle" class="btn-sound" onclick="toggleAudio()" title="Toggle Notification Audio" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(255,255,255,0.85);border:1px solid var(--border-color);border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text-secondary);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+          <span>Sound ON</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="content-area">
+
+      <!-- ================= DASHBOARD TAB (DEFAULT OVERVIEW) ================= -->
+      <div class="tab-content active" id="tab-dashboard">
+        <div class="page-header">
+          <div>
+            <h1>Executive Analytics Dashboard</h1>
+            <p>Serve Family platform pulse — Live fleet operations, ride bookings, revenue & family network</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn-primary" onclick="refreshCurrentTab()" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+              <span>Refresh Analytics</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI Summary Bar (6 High-Impact Cards) -->
+        <div class="dashboard-kpi-grid">
+          <div class="dash-card card-purple">
+            <div class="dash-card-info">
+              <div class="dash-card-label">Registered Users</div>
+              <div class="dash-card-val" id="dash-total-users">—</div>
+              <div class="dash-card-sub sub-green"><span>●</span> <span id="dash-active-users">Active Accounts</span></div>
+            </div>
+            <div class="dash-card-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+          </div>
+
+          <div class="dash-card card-teal">
+            <div class="dash-card-info">
+              <div class="dash-card-label">Taxi Fleet</div>
+              <div class="dash-card-val" id="dash-total-taxis">—</div>
+              <div class="dash-card-sub">Registered Vehicles</div>
+            </div>
+            <div class="dash-card-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            </div>
+          </div>
+
+          <div class="dash-card card-green">
+            <div class="dash-card-info">
+              <div class="dash-card-label">Active Drivers</div>
+              <div class="dash-card-val" id="dash-active-taxis">—</div>
+              <div class="dash-card-sub sub-green"><span>●</span> Ready for Dispatch</div>
+            </div>
+            <div class="dash-card-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+          </div>
+
+          <div class="dash-card card-blue">
+            <div class="dash-card-info">
+              <div class="dash-card-label">Trips & Bookings</div>
+              <div class="dash-card-val" id="dash-total-bookings">—</div>
+              <div class="dash-card-sub">All-time Rides</div>
+            </div>
+            <div class="dash-card-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+          </div>
+
+          <div class="dash-card card-cyan">
+            <div class="dash-card-info">
+              <div class="dash-card-label">Family Circles</div>
+              <div class="dash-card-val" id="dash-total-circles">—</div>
+              <div class="dash-card-sub">Safety Groups</div>
+            </div>
+            <div class="dash-card-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="12" r="4"/><circle cx="18" cy="8" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            </div>
+          </div>
+
+          <div class="dash-card card-amber">
+            <div class="dash-card-info">
+              <div class="dash-card-label">Pending Approvals</div>
+              <div class="dash-card-val" id="dash-pending-taxis">—</div>
+              <div class="dash-card-sub" style="color:#D97706;font-weight:600;">Action Required</div>
+            </div>
+            <div class="dash-card-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Navigation Shortcuts -->
+        <div class="dashboard-shortcuts-grid">
+          <a href="#" class="dash-shortcut-btn" onclick="switchTab('taxi-approve');return false;">
+            <div class="dash-shortcut-icon" style="background:#FEF3C7;color:#D97706;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            </div>
+            <div>
+              <div>Review Taxi Approvals</div>
+              <div style="font-size:11px;color:#94A3B8;font-weight:500;">Verify driver documents</div>
+            </div>
+          </a>
+
+          <a href="#" class="dash-shortcut-btn" onclick="switchTab('fleet-map');return false;">
+            <div class="dash-shortcut-icon" style="background:#EFF6FF;color:#2563EB;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+            </div>
+            <div>
+              <div>Live Fleet Radar Map</div>
+              <div style="font-size:11px;color:#94A3B8;font-weight:500;">Track real-time GPS locations</div>
+            </div>
+          </a>
+
+          <a href="#" class="dash-shortcut-btn" onclick="switchTab('trips');return false;">
+            <div class="dash-shortcut-icon" style="background:#F3E8FF;color:#7C3AED;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/></svg>
+            </div>
+            <div>
+              <div>Live Trips & Bookings</div>
+              <div style="font-size:11px;color:#94A3B8;font-weight:500;">Monitor ride dispatch</div>
+            </div>
+          </a>
+
+          <a href="#" class="dash-shortcut-btn" onclick="switchTab('broadcast');return false;">
+            <div class="dash-shortcut-icon" style="background:#FEE2E2;color:#EF4444;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            </div>
+            <div>
+              <div>Emergency Broadcast</div>
+              <div style="font-size:11px;color:#94A3B8;font-weight:500;">Push notification & SMS</div>
+            </div>
+          </a>
+        </div>
+
+        <!-- Analytics Row: Interactive Chart & Fleet Gauges -->
+        <div class="dashboard-analytics-row">
+          <!-- Weekly Activity Chart Card -->
+          <div class="dash-analytics-card">
+            <div class="dash-analytics-card-header">
+              <div class="dash-analytics-card-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                Weekly Trip Volume & Ride Activity
+              </div>
+              <div class="dash-analytics-card-badge" id="chart-week-badge">Last 7 Days</div>
+            </div>
+
+            <!-- Visual Bar Chart -->
+            <div class="chart-bars-wrap" id="dash-chart-bars">
+              <div class="chart-bar-col">
+                <span class="chart-bar-val" id="bar-val-0">12</span>
+                <div class="chart-bar-fill-wrap"><div class="chart-bar-fill" id="bar-fill-0" style="height: 40%;"></div></div>
+                <span class="chart-bar-label">Mon</span>
+              </div>
+              <div class="chart-bar-col">
+                <span class="chart-bar-val" id="bar-val-1">19</span>
+                <div class="chart-bar-fill-wrap"><div class="chart-bar-fill" id="bar-fill-1" style="height: 55%;"></div></div>
+                <span class="chart-bar-label">Tue</span>
+              </div>
+              <div class="chart-bar-col">
+                <span class="chart-bar-val" id="bar-val-2">28</span>
+                <div class="chart-bar-fill-wrap"><div class="chart-bar-fill" id="bar-fill-2" style="height: 70%;"></div></div>
+                <span class="chart-bar-label">Wed</span>
+              </div>
+              <div class="chart-bar-col">
+                <span class="chart-bar-val" id="bar-val-3">22</span>
+                <div class="chart-bar-fill-wrap"><div class="chart-bar-fill" id="bar-fill-3" style="height: 60%;"></div></div>
+                <span class="chart-bar-label">Thu</span>
+              </div>
+              <div class="chart-bar-col">
+                <span class="chart-bar-val" id="bar-val-4">35</span>
+                <div class="chart-bar-fill-wrap"><div class="chart-bar-fill" id="bar-fill-4" style="height: 85%;"></div></div>
+                <span class="chart-bar-label">Fri</span>
+              </div>
+              <div class="chart-bar-col">
+                <span class="chart-bar-val" id="bar-val-5">42</span>
+                <div class="chart-bar-fill-wrap"><div class="chart-bar-fill highlight" id="bar-fill-5" style="height: 95%;"></div></div>
+                <span class="chart-bar-label">Sat</span>
+              </div>
+              <div class="chart-bar-col">
+                <span class="chart-bar-val" id="bar-val-6">31</span>
+                <div class="chart-bar-fill-wrap"><div class="chart-bar-fill" id="bar-fill-6" style="height: 75%;"></div></div>
+                <span class="chart-bar-label">Sun</span>
+              </div>
+            </div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid #F1F5F9;font-size:12px;color:#64748B;">
+              <div><span>Total Weekly Trips: </span><strong style="color:#0F172A;" id="dash-weekly-trips-sum">189</strong></div>
+              <div><span>Ride Completion Rate: </span><strong style="color:#059669;" id="dash-completion-rate">96.4%</strong></div>
+            </div>
+          </div>
+
+          <!-- Fleet Status & Vehicle Distribution Card -->
+          <div class="dash-analytics-card">
+            <div class="dash-analytics-card-header">
+              <div class="dash-analytics-card-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/></svg>
+                Fleet Status Breakdown
+              </div>
+            </div>
+
+            <div class="fleet-dist-list">
+              <div class="fleet-dist-item">
+                <div class="fleet-dist-info">
+                  <span class="fleet-dist-name"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10B981;"></span> Approved & Active</span>
+                  <span class="fleet-dist-val" id="gauge-approved-val">0</span>
+                </div>
+                <div class="fleet-progress-bar"><div class="fleet-progress-fill bg-emerald" id="gauge-approved-bar" style="width: 70%;"></div></div>
+              </div>
+
+              <div class="fleet-dist-item">
+                <div class="fleet-dist-info">
+                  <span class="fleet-dist-name"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#F59E0B;"></span> Pending Review</span>
+                  <span class="fleet-dist-val" id="gauge-pending-val">0</span>
+                </div>
+                <div class="fleet-progress-bar"><div class="fleet-progress-fill bg-amber" id="gauge-pending-bar" style="width: 20%;"></div></div>
+              </div>
+
+              <div class="fleet-dist-item">
+                <div class="fleet-dist-info">
+                  <span class="fleet-dist-name"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#EF4444;"></span> Suspended / Rejected</span>
+                  <span class="fleet-dist-val" id="gauge-suspended-val">0</span>
+                </div>
+                <div class="fleet-progress-bar"><div class="fleet-progress-fill bg-rose" id="gauge-suspended-bar" style="width: 5%;"></div></div>
+              </div>
+
+              <div class="fleet-dist-item">
+                <div class="fleet-dist-info">
+                  <span class="fleet-dist-name"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#3B82F6;"></span> Regional Agents Active</span>
+                  <span class="fleet-dist-val" id="gauge-agents-val">0</span>
+                </div>
+                <div class="fleet-progress-bar"><div class="fleet-progress-fill bg-blue" id="gauge-agents-bar" style="width: 50%;"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Platform Activity Table -->
+        <div class="table-container" style="margin-top:10px;">
+          <div style="padding:16px 20px;border-bottom:1px solid var(--border-color);display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <h2 style="font-size:15px;font-weight:800;color:var(--text-primary);margin:0;">Recent Platform Activity & Fleet Registrations</h2>
+              <p style="font-size:12px;color:var(--text-muted);margin:2px 0 0;">Latest driver registrations and system updates</p>
+            </div>
+            <button class="btn-secondary" onclick="switchTab('taxi-approve')" style="font-size:12px;padding:6px 12px;">View All Registrations</button>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Driver Name</th>
+                  <th>Vehicle Plate</th>
+                  <th>Type</th>
+                  <th>Base Address</th>
+                  <th>Status</th>
+                  <th>Registered At</th>
+                </tr>
+              </thead>
+              <tbody id="dash-recent-activity-tbody">
+                <tr><td colspan="7" class="table-loading"><div class="spinner"></div> Loading recent activity...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- TAXI APPROVAL TAB -->
+      <div class="tab-content" id="tab-taxi-approve">
+        <div class="page-header">
+          <div><h1>Taxi Registration Approval</h1><p>Review driver documents and approve or reject registration requests</p></div>
+          <div class="page-actions">
+            <button type="button" class="btn-primary" onclick="openRegisterDriverModal()" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>Register New Driver</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Driver & Vehicle Lookup Card -->
+        <div class="card" style="margin-bottom: 20px; padding: 18px 22px; border: 1px solid var(--border-color); background: #FFFFFF; border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+            <div>
+              <div style="font-size:15px;font-weight:700;color:var(--text-main);display:flex;align-items:center;gap:8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Instant Driver & Vehicle Lookup
+              </div>
+              <p style="font-size:12px;color:var(--text-muted);margin:3px 0 0 0;">Search driver by full mobile number (e.g. 0771234567) or vehicle plate (e.g. CAB-1234) across all regions</p>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;flex:1;max-width:520px;min-width:280px;">
+              <div class="search-box" style="flex:1;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="quick-approve-input" placeholder="Enter driver mobile or registration plate..." onkeydown="if(event.key==='Enter')handleQuickLookupVehicle()" />
+              </div>
+              <button type="button" class="btn-primary" onclick="handleQuickLookupVehicle()" style="padding:9px 18px;white-space:nowrap;">
+                Find & Inspect
+              </button>
+            </div>
+          </div>
+          <div id="quick-approve-results" style="display:none;margin-top:16px;border-top:1px solid var(--border-color);padding-top:16px;"></div>
+        </div>
+
+        <div class="filter-bar">
+          <div class="filter-group">
+            <button class="filter-btn active" id="filter-all" onclick="filterApproval('all')">All</button>
+            <button class="filter-btn" id="filter-pending"  onclick="filterApproval('pending')">Pending <span class="filter-count" id="count-pending">0</span></button>
+            <button class="filter-btn" id="filter-approved" onclick="filterApproval('approved')">Approved <span class="filter-count" id="count-approved">0</span></button>
+            <button class="filter-btn" id="filter-rejected" onclick="filterApproval('rejected')">Rejected <span class="filter-count" id="count-rejected">0</span></button>
+          </div>
+          <div class="search-box">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="search-approval" placeholder="Search driver, plate, phone, email, type..." oninput="searchApproval()" />
+          </div>
+        </div>
+        <div id="approval-list" class="approval-grid"><div class="loading-state"><div class="spinner"></div><span>Loading...</span></div></div>
+      </div>
+
+      <!-- TAXI MANAGE TAB -->
+      <div class="tab-content" id="tab-taxi-manage">
+        <div class="page-header">
+          <div><h1>Manage Registered Taxis</h1><p>View and manage all taxis in the fleet</p></div>
+          <div class="page-actions">
+            <button type="button" class="btn-primary" id="btn-toggle-register-driver" onclick="openRegisterDriverModal()" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>Register New Driver</span>
+            </button>
+            <button class="btn-export" onclick="exportData()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export CSV</button>
+          </div>
+        </div>
+        <div class="table-container">
+          <div class="table-header">
+            <div class="table-search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" id="search-manage" placeholder="Search plate, driver, phone, type, city..." oninput="searchManage()" /></div>
+            <select id="status-filter" onchange="filterManageStatus()"><option value="">All Status</option><option value="active">Active (Online)</option><option value="approved">Approved</option><option value="pending">Pending</option><option value="rejected">Rejected</option></select>
+          </div>
+          <div class="table-wrapper"><table id="taxi-table"><thead><tr><th>#</th><th>Driver</th><th>Vehicle</th><th>Reg No.</th><th>Status</th><th>Registered</th><th>Actions</th></tr></thead><tbody id="taxi-table-body"><tr><td colspan="7" class="table-loading"><div class="spinner"></div></td></tr></tbody></table></div>
+          <div class="table-pagination"><span id="pagination-info">—</span><div class="pagination-controls"><button class="page-btn" id="prev-btn" onclick="changePage(-1)" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15,18 9,12 15,6"/></svg></button><span id="page-info">Page 1</span><button class="page-btn" id="next-btn" onclick="changePage(1)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg></button></div></div>
+        </div>
+      </div>
+
+      <!-- LIVE FLEET & USER MAP TAB -->
+      <div class="tab-content" id="tab-fleet-map">
+        <div class="page-header">
+          <div><h1>Live Fleet & User Map</h1><p>Real-time vehicle fleet & Serve Family user tracking across Sri Lanka</p></div>
+          <div class="page-actions">
+            <span id="fleet-tab-count" class="badge-online" style="padding:7px 14px;font-size:12px;">Loading...</span>
+            <button class="btn-export" onclick="loadFleetTab()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh</button>
+          </div>
+        </div>
+        <div class="fleet-tab-layout">
+          <!-- Left sidebar: list -->
+          <div class="fleet-tab-sidebar">
+            <div class="fleet-search-bar">
+              <div class="search-box" style="width:100%">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="fleet-search" placeholder="Search taxi, driver, user..." oninput="searchFleet()" />
+              </div>
+            </div>
+            <div class="fleet-filter-row">
+              <button class="fleet-filter-btn active" id="fleet-filter-all"    onclick="filterFleet('all')">All</button>
+              <button class="fleet-filter-btn"        id="fleet-filter-taxi"   onclick="filterFleet('taxi')">Taxis</button>
+              <button class="fleet-filter-btn"        id="fleet-filter-user"   onclick="filterFleet('user')">Family</button>
+              <button class="fleet-filter-btn"        id="fleet-filter-online" onclick="filterFleet('online')">Online</button>
+            </div>
+            <div class="fleet-sort-row">
+              <span class="fleet-sort-lbl">Sort:</span>
+              <select id="fleet-sort-select" onchange="changeFleetSort(this.value)" class="fleet-sort-dropdown">
+                <option value="name">Name (A–Z)</option>
+                <option value="type">Type (Taxi / User)</option>
+                <option value="online">Online First</option>
+                <option value="recent">Recently Added</option>
+              </select>
+            </div>
+            <div id="fleet-sidebar-list" class="fleet-sidebar-list"><div class="loading-state"><div class="spinner"></div></div></div>
+          </div>
+          <!-- Right: map -->
+          <div class="fleet-tab-map-wrap">
+            <div id="fleet-tab-loading" class="fleet-map-loading" style="display:none"><div class="spinner"></div><span>Loading fleet & user locations...</span></div>
+            <div id="fleet-tab-map" class="fleet-tab-map-canvas"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SRI LANKA SERVICE COVERAGE ZONES TAB -->
+      <div class="tab-content" id="tab-coverage">
+        <div class="page-header">
+          <div>
+            <h1>Sri Lanka Coverage Zones</h1>
+            <p>Manage regional taxi service coverage across Sri Lanka. Users inside active zones receive <code>"covered"</code> status in their profile, while others receive <code>"notcovered"</code>.</p>
+          </div>
+          <div class="page-actions" style="display:flex;gap:10px;align-items:center;">
+            <button class="btn-sm" id="btn-draw-circle" style="background:#4F46E5;color:#fff;border:none;display:inline-flex;align-items:center;gap:6px;font-weight:600;padding:6px 12px;border-radius:8px;cursor:pointer;" onclick="toggleCircleDrawMode()" title="Click on map to draw a circular coverage zone">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
+              <span id="btn-draw-circle-text">Draw Circle on Map</span>
+            </button>
+            <button class="btn-sm btn-approve" onclick="toggleAllCoverage(true)" title="Enable coverage for all regions">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              Select All (Island-wide)
+            </button>
+            <button class="btn-sm btn-reject" onclick="toggleAllCoverage(false)" title="Disable coverage for all regions">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              Clear All
+            </button>
+            <button class="btn-primary" onclick="saveCoverageChanges()" title="Save coverage zones to database">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Save Coverage
+            </button>
+          </div>
+        </div>
+
+        <!-- Summary KPI Stats -->
+        <div class="stats-overview-bar" style="margin-bottom:20px;">
+          <div class="stat-card card-purple">
+            <div class="stat-card-info">
+              <span class="stat-label">Total Regions</span>
+              <div class="stat-value" id="cov-total-zones">0</div>
+              <div class="stat-subtext">Configured Sri Lanka Zones</div>
+            </div>
+            <div class="stat-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></div>
+          </div>
+          <div class="stat-card card-emerald">
+            <div class="stat-card-info">
+              <span class="stat-label">Active Covered Zones</span>
+              <div class="stat-value" id="cov-active-zones">0</div>
+              <div class="stat-subtext">Status: "covered" in API</div>
+            </div>
+            <div class="stat-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+          </div>
+          <div class="stat-card card-teal">
+            <div class="stat-card-info">
+              <span class="stat-label">Inactive (Not Covered)</span>
+              <div class="stat-value" id="cov-inactive-zones">0</div>
+              <div class="stat-subtext">Status: "notcovered" in API</div>
+            </div>
+            <div class="stat-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>
+          </div>
+          <div class="stat-card card-blue">
+            <div class="stat-card-info">
+              <span class="stat-label">Coverage Engine</span>
+              <div class="stat-value" style="font-size:18px;color:#10B981;font-weight:700;">Live & Synced</div>
+              <div class="stat-subtext">Real-time /api/profile sync</div>
+            </div>
+            <div class="stat-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          </div>
+        </div>
+
+        <div class="coverage-layout">
+          <!-- Left Column: Zone List & Custom Geozone Form -->
+          <div class="coverage-sidebar">
+            <div class="coverage-search-bar">
+              <div class="search-box" style="width:100%">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="cov-search-input" placeholder="Search province, district, city..." oninput="filterCoverageList()" />
+              </div>
+            </div>
+            <div class="coverage-filter-row">
+              <button class="fleet-filter-btn active" id="cov-filter-all" onclick="filterCovType('all')">All</button>
+              <button class="fleet-filter-btn" id="cov-filter-covered" onclick="filterCovType('covered')">Covered</button>
+              <button class="fleet-filter-btn" id="cov-filter-notcovered" onclick="filterCovType('notcovered')">Not Covered</button>
+            </div>
+            <div id="coverage-zones-list" class="coverage-zones-scroll">
+              <div class="loading-state"><div class="spinner"></div><span>Loading zones...</span></div>
+            </div>
+
+            <!-- Add Custom Geozone Form Panel -->
+            <div class="coverage-custom-panel">
+              <div style="font-size:12px;font-weight:700;color:var(--accent-primary);text-transform:uppercase;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+                <span>Add Custom Service Area</span>
+                <button type="button" class="btn-sm" style="background:#4F46E5;color:#fff;font-size:10px;border:none;border-radius:6px;padding:2px 8px;cursor:pointer;font-weight:600;" onclick="toggleCircleDrawMode()">
+                  🎯 Draw on Map
+                </button>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <input type="text" id="custom-zone-name" class="input-field" placeholder="Zone Name (e.g. Negombo Airport Hub)" style="padding:6px 10px;font-size:12px;" />
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                  <input type="number" step="0.0001" id="custom-zone-lat" class="input-field" placeholder="Latitude" style="padding:6px 10px;font-size:12px;" />
+                  <input type="number" step="0.0001" id="custom-zone-lng" class="input-field" placeholder="Longitude" style="padding:6px 10px;font-size:12px;" />
+                </div>
+                <div style="display:grid;grid-template-columns:1fr auto;gap:6px;">
+                  <input type="number" id="custom-zone-radius" class="input-field" placeholder="Radius KM (e.g. 15)" value="15" style="padding:6px 10px;font-size:12px;" />
+                  <button class="btn-sm btn-approve" onclick="addCustomCoverageZone()" style="white-space:nowrap;">+ Add Zone</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Interactive Sri Lanka Map -->
+          <div class="coverage-map-panel">
+            <div id="coverage-map-loading" class="fleet-map-loading" style="display:none"><div class="spinner"></div><span>Rendering Sri Lanka coverage map...</span></div>
+            <div id="coverage-map" class="coverage-map-canvas"></div>
+            
+            <!-- Interactive Circle Drawing Banner -->
+            <div id="coverage-draw-banner" class="coverage-draw-banner" style="display:none;">
+              <div class="draw-banner-icon">🎯</div>
+              <div class="draw-banner-content">
+                <strong id="draw-banner-title">Circle Drawing Mode Active</strong>
+                <p id="draw-banner-text">Step 1: Click on the map to place the center point</p>
+              </div>
+              <button class="btn-sm btn-reject" style="padding:4px 10px;font-size:11px;border-radius:6px;" onclick="cancelCircleDrawMode()">Cancel</button>
+            </div>
+
+            <!-- Map Overlay Legend -->
+            <div class="coverage-map-legend">
+              <div class="legend-item"><span class="legend-dot active"></span> Active Zone</div>
+              <div class="legend-item"><span class="legend-dot" style="background:#6366F1;box-shadow:0 0 8px rgba(99,102,241,0.85);"></span> Custom Zone</div>
+              <div class="legend-hint">Only active zones shown &bull; Toggle sidebar to show/hide</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AGENTS & REGIONAL TAB -->
+      <div class="tab-content" id="tab-agents">
+        <div class="page-header">
+          <div><h1>Agents & Regional Driver Management</h1><p>Manage regional agents with province, district & divisional coverage</p></div>
+          <div class="page-actions"><button class="btn-primary" onclick="openCreateAgentModal()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Agent</button></div>
+        </div>
+        <div class="agents-layout">
+          <div class="agents-cards-container" id="agents-list"><div class="loading-state"><div class="spinner"></div><span>Loading agents...</span></div></div>
+          <div class="fleet-map-container">
+            <div class="map-card-header">
+              <div><h3 class="map-card-title">Fleet Overview</h3><p class="map-card-sub">Active drivers on map</p></div>
+              <span class="badge-online" id="online-drivers-count">0 Active</span>
+            </div>
+            <div id="fleet-map" class="fleet-map-canvas"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VEHICLE TYPES TAB -->
+      <div class="tab-content" id="tab-vehicle-types">
+        <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+          <div>
+            <h1>Manage Vehicle Types</h1>
+            <p>Configure taxi and transport categories, base fares, rate per KM, and seating capacity</p>
+          </div>
+          <button class="btn-primary" onclick="openAddVehicleTypeModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>Add Vehicle Type</span>
+          </button>
+        </div>
+
+        <div class="table-container">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Type Name</th>
+                  <th>Category</th>
+                  <th>Base Fare (LKR)</th>
+                  <th>Rate Per KM (LKR)</th>
+                  <th>Seats</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="vehicle-types-table-body">
+                <tr><td colspan="7" class="table-loading"><div class="spinner"></div> Loading vehicle types...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- USERS TAB -->
+      <div class="tab-content" id="tab-users">
+        <div class="page-header">
+          <div><h1>Serve Family Registered Users</h1><p>Manage accounts, verification, locations and access</p></div>
+          <div class="page-actions">
+            <button class="btn-export" onclick="openUsersLocMap()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Map View</button>
+          </div>
+        </div>
+        <!-- Mini stats -->
+        <div class="users-mini-stats">
+          <div class="mini-stat"><span class="mini-stat-val" id="users-stat-total">—</span><span class="mini-stat-lbl">Total Users</span></div>
+          <div class="mini-stat"><span class="mini-stat-val" id="users-stat-verified">—</span><span class="mini-stat-lbl">Verified</span></div>
+          <div class="mini-stat"><span class="mini-stat-val" id="users-stat-banned">—</span><span class="mini-stat-lbl">Banned</span></div>
+          <div class="mini-stat"><span class="mini-stat-val" id="users-stat-withloc">—</span><span class="mini-stat-lbl">With Location</span></div>
+        </div>
+        <!-- Filter bar -->
+        <div class="filter-bar" style="margin-bottom:14px;">
+          <div class="filter-group">
+            <button class="users-filter-btn filter-btn active" id="uf-all"        onclick="setUsersFilter('all')">All</button>
+            <button class="users-filter-btn filter-btn" id="uf-verified"   onclick="setUsersFilter('verified')">Verified</button>
+            <button class="users-filter-btn filter-btn" id="uf-unverified" onclick="setUsersFilter('unverified')">Unverified</button>
+            <button class="users-filter-btn filter-btn" id="uf-banned"     onclick="setUsersFilter('banned')">Banned</button>
+            <button class="users-filter-btn filter-btn" id="uf-tracker"    onclick="setUsersFilter('tracker')">GPS Trackers</button>
+            <button class="users-filter-btn filter-btn" id="uf-withloc"    onclick="setUsersFilter('withloc')">Has Location</button>
+          </div>
+          <div class="search-box">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="search-users" placeholder="Name, email, phone..." oninput="searchUsers(this.value)" />
+          </div>
+        </div>
+        <div class="table-container">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th class="sort-th" data-sort="name" onclick="sortUsers('name')">User <span class="sort-icon" data-dir="">↕</span></th>
+                  <th class="sort-th" data-sort="email" onclick="sortUsers('email')">Email <span class="sort-icon" data-dir="">↕</span></th>
+                  <th>Phone</th>
+                  <th>Password</th>
+                  <th>Type</th>
+                  <th>Location</th>
+                  <th class="sort-th" data-sort="createdAt" onclick="sortUsers('createdAt')">Registered <span class="sort-icon" data-dir="desc">↓</span></th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="users-table-body"><tr><td colspan="9" class="table-loading"><div class="spinner"></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- FAMILY CIRCLES TAB -->
+      <div class="tab-content" id="tab-circles">
+        <div class="page-header">
+          <div><h1>Family Circles</h1><p>All active family safety groups, member locations and invite codes</p></div>
+          <div class="page-actions">
+            <button class="btn-export" onclick="openAllCirclesMap()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>All Circles Map View</button>
+            <button class="btn-export" onclick="loadCirclesData()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh</button>
+          </div>
+        </div>
+        <div class="table-container">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Circle Name</th>
+                  <th>Creator</th>
+                  <th>Invite Code</th>
+                  <th>Members</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="circles-table-body">
+                <tr><td colspan="7" class="table-loading"><div class="spinner"></div> Loading circles...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PLANS TAB -->
+      <div class="tab-content" id="tab-plans">
+        <div class="page-header">
+          <div>
+            <h1>Subscription Plans & Pricing</h1>
+            <p>Edit monthly prices, resource quotas, and plan features</p>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button class="btn-export" onclick="loadPlansData()" style="display:inline-flex;align-items:center;gap:6px;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+              Refresh Plans
+            </button>
+          </div>
+        </div>
+        <div id="plans-cards-grid" class="plans-grid"><div class="loading-state"><div class="spinner"></div><span>Loading plans...</span></div></div>
+      </div>
+
+      <!-- REVENUE TAB -->
+      <div class="tab-content" id="tab-revenue">
+        <div class="page-header"><div><h1>Revenue & Income Analytics</h1><p>Subscriber income and monthly revenue breakdown</p></div></div>
+        <div class="stats-overview-bar" style="margin-bottom:24px;">
+          <div class="stat-card card-purple">
+            <div class="stat-card-info"><span class="stat-label">Subscribed Users</span><div class="stat-value" id="rev-total-subs">—</div><div class="stat-subtext">Active Paid Accounts</div></div>
+            <div class="stat-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          </div>
+          <div class="stat-card card-emerald">
+            <div class="stat-card-info"><span class="stat-label">Monthly Revenue</span><div class="stat-value" id="rev-total-amount">—</div><div class="stat-subtext">System Income</div></div>
+            <div class="stat-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+          </div>
+        </div>
+        <div class="table-container"><div class="table-wrapper"><table><thead><tr><th>#</th><th>Subscriber</th><th>Email</th><th>Plan</th><th>Monthly Price</th><th>Since</th></tr></thead><tbody id="revenue-table-body"><tr><td colspan="6" class="table-loading"><div class="spinner"></div></td></tr></tbody></table></div></div>
+      </div>
+
+      <!-- REFERRALS TAB -->
+      <div class="tab-content" id="tab-referrals">
+        <div class="page-header"><div><h1>Referral Program</h1><p>Track referral codes and referring users</p></div></div>
+        <div class="table-container"><div class="table-wrapper"><table><thead><tr><th>#</th><th>User Name</th><th>Email</th><th>Referral Code</th><th>Registered</th></tr></thead><tbody id="referrals-table-body"><tr><td colspan="5" class="table-loading"><div class="spinner"></div></td></tr></tbody></table></div></div>
+      </div>
+
+      <!-- ADMIN MANAGEMENT TAB -->
+      <div class="tab-content" id="tab-admins">
+        <div class="page-header"><div><h1>Admin Account Management</h1><p>Grant or revoke admin dashboard access</p></div></div>
+        <div class="admins-layout">
+          <!-- Add Admin Form -->
+          <div class="add-admin-card">
+            <h3 class="add-admin-title">Add New Admin</h3>
+            <form onsubmit="handleCreateAdmin(event)">
+              <div class="form-group" style="margin-bottom:12px;"><label>Full Name</label><input type="text" id="new-admin-name" class="input-field" placeholder="e.g. Kasun Perera" required /></div>
+              <div class="form-group" style="margin-bottom:12px;"><label>Email Address</label><input type="email" id="new-admin-email" class="input-field" placeholder="kasun@servefamily.com" required /></div>
+              <div class="form-group" style="margin-bottom:12px;"><label>Initial Password</label><input type="password" id="new-admin-pass" class="input-field" placeholder="Min. 6 characters" required minlength="6" /></div>
+              <div class="form-group" style="margin-bottom:20px;"><label>Phone (optional)</label><input type="text" id="new-admin-phone" class="input-field" placeholder="0771234567" /></div>
+              <button type="submit" class="btn-primary" style="width:100%;padding:11px;">Create Admin Account</button>
+            </form>
+          </div>
+          <!-- Admin List -->
+          <div class="admins-list-panel">
+            <h3 class="add-admin-title" style="margin-bottom:14px;">Current Admins</h3>
+            <div id="admins-list"><div class="loading-state"><div class="spinner"></div><span>Loading admins...</span></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRIPS & BOOKINGS TAB -->
+      <div class="tab-content" id="tab-trips">
+        <div class="page-header">
+          <div>
+            <h1>Trips & Bookings</h1>
+            <p>Live passenger ride requests, active driver dispatches, route tracking, and revenue management</p>
+          </div>
+          <div class="page-actions" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <button class="btn-export" id="btn-trips-autosync" onclick="toggleTripsAutoSync()" title="Automatically syncs new bookings in real time" style="display:flex;align-items:center;gap:6px;">
+              <span class="status-dot online" id="trips-autosync-dot"></span>
+              <span id="trips-autosync-label">Live Sync: ON</span>
+            </button>
+            <button class="btn-export" onclick="exportTripsCSV()" title="Export filtered trips to CSV">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export CSV
+            </button>
+            <button class="btn-export" onclick="loadBookings()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              Refresh
+            </button>
+          </div>
+        </div>
+
+        <!-- TRIPS LIVE STATS CARDS -->
+        <div class="stats-overview-bar" style="margin-bottom:24px;display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:16px;">
+          <div class="stat-card card-purple">
+            <div class="stat-card-info">
+              <span class="stat-label">Total Bookings</span>
+              <div class="stat-value" id="trips-stat-total">—</div>
+              <div class="stat-subtext">All Recorded Trips</div>
+            </div>
+            <div class="stat-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+          </div>
+          <div class="stat-card card-amber">
+            <div class="stat-card-info">
+              <span class="stat-label">Pending Broadcast</span>
+              <div class="stat-value" id="trips-stat-pending" style="color:#D97706;">—</div>
+              <div class="stat-subtext">Searching for Drivers</div>
+            </div>
+            <div class="stat-icon-wrap" style="background:#FEF3C7;color:#D97706;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          </div>
+          <div class="stat-card card-teal">
+            <div class="stat-card-info">
+              <span class="stat-label">Active Trips</span>
+              <div class="stat-value" id="trips-stat-active" style="color:#0284C7;">—</div>
+              <div class="stat-subtext">Accepted · Arrived · In Transit</div>
+            </div>
+            <div class="stat-icon-wrap" style="background:#E0F2FE;color:#0284C7;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16.2 7.8l-2 6.3-6.4 2.1 2-6.3z"/></svg></div>
+          </div>
+          <div class="stat-card card-emerald">
+            <div class="stat-card-info">
+              <span class="stat-label">Completed Rides</span>
+              <div class="stat-value" id="trips-stat-completed" style="color:#059669;">—</div>
+              <div class="stat-subtext">Delivered Safely</div>
+            </div>
+            <div class="stat-icon-wrap" style="background:#D1FAE5;color:#059669;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+          </div>
+          <div class="stat-card card-emerald">
+            <div class="stat-card-info">
+              <span class="stat-label">Total Volume</span>
+              <div class="stat-value" id="trips-stat-revenue" style="font-size:20px;color:#059669;">LKR 0</div>
+              <div class="stat-subtext" id="trips-stat-commission">Platform: LKR 0</div>
+            </div>
+            <div class="stat-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <div class="table-header" style="flex-wrap:wrap;gap:12px;">
+            <div class="table-search" style="flex:1;min-width:240px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="trips-search" placeholder="Search by ID, passenger, driver, plate, address..." oninput="handleTripsSearchInput()" />
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <select id="trips-status-filter" onchange="loadBookings()">
+                <option value="">All Statuses</option>
+                <option value="pending">Pending (Searching)</option>
+                <option value="accepted">Accepted</option>
+                <option value="arrived">Arrived</option>
+                <option value="in_transit">In Transit (Active)</option>
+                <option value="in_progress">All In Progress</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Booking ID</th>
+                  <th>Passenger</th>
+                  <th>Driver & Vehicle</th>
+                  <th>Route & Distance</th>
+                  <th>Status</th>
+                  <th>Fare & Payment</th>
+                  <th>Date & Time</th>
+                  <th style="text-align:right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="trips-table-body">
+                <tr><td colspan="8" class="table-loading"><div class="spinner"></div> Loading trips...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- DRIVER WALLETS TAB -->
+      <div class="tab-content" id="tab-wallets">
+        <div class="page-header">
+          <div><h1>Driver Wallets & Earnings</h1><p>Commission calculations, driver payouts, and gross revenue summary</p></div>
+        </div>
+        <div class="stats-overview-bar" style="margin-bottom:24px;">
+          <div class="stat-card card-purple">
+            <div class="stat-card-info"><span class="stat-label">Total Drivers</span><div class="stat-value" id="wallet-total-drivers">—</div><div class="stat-subtext">Registered Fleet Drivers</div></div>
+            <div class="stat-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+          </div>
+          <div class="stat-card card-emerald">
+            <div class="stat-card-info"><span class="stat-label">Gross Ride Revenue</span><div class="stat-value" id="wallet-gross-earnings">—</div><div class="stat-subtext">Total Fares Earned</div></div>
+            <div class="stat-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+          </div>
+          <div class="stat-card card-teal">
+            <div class="stat-card-info"><span class="stat-label">Platform Commission</span><div class="stat-value" id="wallet-platform-commission">—</div><div class="stat-subtext">Serve Family Revenue</div></div>
+            <div class="stat-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+          </div>
+        </div>
+        <div class="table-container">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Driver Name</th>
+                  <th>Vehicle & Reg No.</th>
+                  <th>Completed Rides</th>
+                  <th>Gross Fares</th>
+                  <th>Platform Fee</th>
+                  <th>Net Earnings</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="wallets-table-body">
+                <tr><td colspan="7" class="table-loading"><div class="spinner"></div> Loading driver wallets...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- BROADCAST PUSH & SMS TAB -->
+      <div class="tab-content" id="tab-broadcast">
+        <div class="page-header">
+          <div>
+            <h1>Broadcast Push & SMS Notifications</h1>
+            <p>Send real-time instant push alerts and SMS messages to drivers and passengers across Sri Lanka</p>
+          </div>
+        </div>
+
+        <div class="broadcast-layout">
+          <!-- Broadcast Composer Card -->
+          <div class="broadcast-card">
+            <div class="broadcast-templates-bar">
+              <span class="template-label">Quick Templates:</span>
+              <button class="template-chip" onclick="applyBroadcastTemplate('weather')">Weather Advisory</button>
+              <button class="template-chip" onclick="applyBroadcastTemplate('promo')">Driver Bonus Promo</button>
+              <button class="template-chip" onclick="applyBroadcastTemplate('update')">App Update Notice</button>
+              <button class="template-chip" onclick="applyBroadcastTemplate('maint')">Maintenance Notice</button>
+            </div>
+
+            <form onsubmit="handleSendBroadcast(event)" id="broadcast-form">
+              <div class="form-group" style="margin-bottom:16px;">
+                <label for="broadcast-audience">Target Audience *</label>
+                <select id="broadcast-audience" class="input-field" onchange="updateBroadcastAudienceBadge()" required>
+                  <option value="all">All Users & Drivers (Entire Fleet)</option>
+                  <option value="drivers">Drivers Only (Taxi & Transport Fleet)</option>
+                  <option value="passengers">Passengers Only (Serve Family App)</option>
+                </select>
+                <div class="audience-badge" id="broadcast-audience-badge">Target Audience: Fetching live database counts...</div>
+              </div>
+
+              <div class="form-group" style="margin-bottom:16px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <label for="broadcast-title">Notification Title *</label>
+                  <span style="font-size:11px;color:var(--text-muted);" id="title-counter">0 / 65</span>
+                </div>
+                <input type="text" id="broadcast-title" class="input-field" placeholder="e.g. Special Commission Discount Today!" required maxlength="65" oninput="updatePushPreview()" />
+              </div>
+
+              <div class="form-group" style="margin-bottom:20px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <label for="broadcast-message">Notification Message Body *</label>
+                  <span style="font-size:11px;color:var(--text-muted);" id="msg-counter">0 / 250</span>
+                </div>
+                <textarea id="broadcast-message" class="input-field" rows="4" placeholder="Type notification details here..." required maxlength="250" style="resize:vertical;" oninput="updatePushPreview()"></textarea>
+              </div>
+
+              <div style="margin-bottom:24px;display:flex;flex-direction:column;gap:10px;background:#F8FAFC;padding:14px;border-radius:10px;border:1px solid var(--border-color);">
+                <span style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;">Delivery Channels</span>
+                <label class="checkbox-row">
+                  <input type="checkbox" id="broadcast-send-push" checked />
+                  <span>Firebase Cloud Messaging (FCM Push Notification)</span>
+                </label>
+                <label class="checkbox-row">
+                  <input type="checkbox" id="broadcast-send-sms" />
+                  <span>SMS Gateway (Direct Mobile Text Message)</span>
+                </label>
+              </div>
+
+              <button type="submit" class="btn-primary" id="btn-submit-broadcast" style="width:100%;padding:13px;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                <span>Dispatch Broadcast Notification</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Smartphone Live Preview Column -->
+          <div>
+            <div class="phone-mockup-wrap">
+              <div class="phone-screen">
+                <div class="phone-notch"></div>
+                <div class="phone-header-row">
+                  <span id="phone-clock">11:42 AM</span>
+                  <div style="display:flex;gap:4px;align-items:center;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 21l3.58-.94C9.43 20.67 10.68 21 12 21c4.97 0 9-4.03 9-9s-4.03-9-9-9z"/></svg>
+                    <span>5G</span>
+                    <span style="font-size:10px;">100%</span>
+                  </div>
+                </div>
+
+                <div class="push-notification-banner" id="push-preview-card">
+                  <div class="push-app-row">
+                    <div class="push-app-icon">SF</div>
+                    <span class="push-app-name">Serve Family</span>
+                    <span class="push-time">Just now</span>
+                  </div>
+                  <div class="push-title" id="preview-push-title">Notification Title Preview</div>
+                  <div class="push-message" id="preview-push-msg">Your broadcast notification message body will appear right here in real-time as you compose it.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AUDIT LOGS TAB -->
+      <div class="tab-content" id="tab-audit">
+        <div class="page-header">
+          <div><h1>System Audit Logs</h1><p>Immutable log of administrative actions, driver approvals, system settings changes, and security events</p></div>
+          <div class="page-actions"><button class="btn-export" onclick="loadAuditLogs()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh</button></div>
+        </div>
+        <div class="table-container">
+          <div class="table-header">
+            <div class="table-search">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="audit-search" placeholder="Search by admin name, action, or target..." oninput="filterAuditLogs()" />
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Admin User</th>
+                  <th>Action</th>
+                  <th>Target Entity</th>
+                  <th>IP Address</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody id="audit-table-body">
+                <tr><td colspan="6" class="table-loading"><div class="spinner"></div> Loading audit logs...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- GLOBAL SYSTEM SETTINGS TAB -->
+      <div class="tab-content" id="tab-system-settings">
+        <div class="page-header">
+          <div><h1>Global System Settings</h1><p>Configure platform commission fees, audio effects, search radius, and system maintenance mode</p></div>
+        </div>
+
+        <form onsubmit="handleSaveSystemSettings(event)">
+          <div class="settings-grid">
+            <!-- Platform Rules -->
+            <div class="settings-card">
+              <div class="settings-card-header">
+                <div class="settings-card-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </div>
+                <div>
+                  <div class="settings-card-title">Platform Fees & Radius</div>
+                  <div class="settings-card-sub">Taxi commission and dispatch limits</div>
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom:16px;">
+                <label for="setting-commission">Platform Commission Fee (%) *</label>
+                <input type="number" id="setting-commission" class="input-field" value="10" min="0" max="100" step="0.5" required />
+                <span style="font-size:11px;color:var(--text-muted);margin-top:4px;">Percentage deducted from each ride fare for platform operation</span>
+              </div>
+
+              <div class="form-group" style="margin-bottom:16px;">
+                <label for="setting-radius">Max Taxi Search Radius (KM) *</label>
+                <input type="number" id="setting-radius" class="input-field" value="15" min="1" max="100" required />
+                <span style="font-size:11px;color:var(--text-muted);margin-top:4px;">Maximum distance to match available drivers to passengers</span>
+              </div>
+            </div>
+
+            <!-- Support & Contacts -->
+            <div class="settings-card">
+              <div class="settings-card-header">
+                <div class="settings-card-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                </div>
+                <div>
+                  <div class="settings-card-title">Customer Support Contacts</div>
+                  <div class="settings-card-sub">Helpdesk contact information displayed in app</div>
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom:16px;">
+                <label for="setting-phone">Support Hotline Phone</label>
+                <input type="text" id="setting-phone" class="input-field" value="+94 77 123 4567" placeholder="+94 77 123 4567" />
+              </div>
+
+              <div class="form-group" style="margin-bottom:16px;">
+                <label for="setting-email">Support Email Address</label>
+                <input type="email" id="setting-email" class="input-field" value="support@servefamily.com" placeholder="support@servefamily.com" />
+              </div>
+            </div>
+
+            <!-- Audio & System Toggles -->
+            <div class="settings-card" style="grid-column: 1 / -1;">
+              <div class="settings-card-header">
+                <div class="settings-card-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                </div>
+                <div>
+                  <div class="settings-card-title">Audio & System Controls</div>
+                  <div class="settings-card-sub">Sound synthesizers and system availability toggles</div>
+                </div>
+              </div>
+
+              <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));gap:16px;margin-bottom:20px;">
+                <label class="switch-label">
+                  <div class="switch-info">
+                    <span class="switch-title">Dashboard Sound Effects</span>
+                    <span class="switch-sub">Enable Web Audio synthesizers for button clicks & notifications</span>
+                  </div>
+                  <span class="toggle-switch">
+                    <input type="checkbox" id="setting-sound" checked onchange="toggleAudioFromSettings(this.checked)" />
+                    <span class="toggle-slider"></span>
+                  </span>
+                </label>
+
+                <label class="switch-label">
+                  <div class="switch-info">
+                    <span class="switch-title">System Maintenance Mode</span>
+                    <span class="switch-sub">Temporarily disable new taxi bookings for system updates</span>
+                  </div>
+                  <span class="toggle-switch">
+                    <input type="checkbox" id="setting-maintenance" />
+                    <span class="toggle-slider"></span>
+                  </span>
+                </label>
+              </div>
+
+              <div style="display:flex;justify-content:flex-end;">
+                <button type="submit" class="btn-primary" id="btn-save-settings" style="padding:12px 28px;display:inline-flex;align-items:center;gap:8px;">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                  <span>Save System Settings</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+    </div><!-- /content-area -->
+  </main>
+</div><!-- /dashboard-page -->
+
+<!-- ===== DOC REVIEW MODAL ===== -->
+<div id="doc-modal" class="modal-overlay hidden" onclick="closeModal(event)">
+  <div class="modal-content" style="max-width:760px;width:95%;">
+    <div class="modal-header">
+      <div class="modal-title-group"><h2 id="modal-driver-name">Driver</h2><span id="modal-status-wrap"></span></div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="btn-action view" style="background:#EEF2FF;color:#4F46E5;border:1px solid #C7D2FE;padding:5px 12px;font-size:12px;font-weight:600;" onclick="switchModalTab('edit')">Edit Details</button>
+        <button class="modal-close" onclick="closeDocModal()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+    </div>
+    <div class="modal-body" style="padding:16px 24px;">
+      <div class="modal-tabs">
+        <button class="modal-tab active" id="mtab-info" onclick="switchModalTab('info')">Driver Info</button>
+        <button class="modal-tab" id="mtab-vehicle" onclick="switchModalTab('vehicle')">Vehicle</button>
+        <button class="modal-tab" id="mtab-docs" onclick="switchModalTab('docs')">Documents</button>
+        <button class="modal-tab" id="mtab-edit" onclick="switchModalTab('edit')">Edit & Update</button>
+        <button class="modal-tab" id="mtab-raw" onclick="switchModalTab('raw')">Raw Data</button>
+      </div>
+      <div class="modal-tab-content active" id="mContent-info"><div class="info-grid" id="m-info-grid"></div></div>
+      <div class="modal-tab-content" id="mContent-vehicle"><div class="info-grid" id="m-vehicle-grid"></div></div>
+      <div class="modal-tab-content" id="mContent-docs"><div class="docs-grid" id="m-docs-list"></div></div>
+      
+      <!-- EDIT TAB INSIDE VIEW MODAL -->
+      <div class="modal-tab-content" id="mContent-edit">
+        <form id="view-modal-edit-form" onsubmit="handleSaveEditDriverFromViewModal(event); return false;" style="padding:10px 0;">
+          <input type="hidden" id="vmod-edit-vehicle-id" />
+          
+          <div style="font-size:12px;font-weight:700;color:var(--accent-primary);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:10px;">
+            1. Driver & Vehicle Information
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px;margin-bottom:16px;">
+            <div class="form-group">
+              <label>Driver Full Name *</label>
+              <input type="text" id="vmod-edit-name" class="input-field" required />
+            </div>
+            <div class="form-group">
+              <label>Mobile Number *</label>
+              <input type="text" id="vmod-edit-mobile" class="input-field" required />
+            </div>
+            <div class="form-group">
+              <label>Email Address</label>
+              <input type="email" id="vmod-edit-email" class="input-field" />
+            </div>
+            <div class="form-group">
+              <label>Vehicle Reg Plate No *</label>
+              <input type="text" id="vmod-edit-plate" class="input-field" required />
+            </div>
+            <div class="form-group">
+              <label>Vehicle Color</label>
+              <input type="text" id="vmod-edit-color" class="input-field" />
+            </div>
+            <div class="form-group">
+              <label>Vehicle Type *</label>
+              <select id="vmod-edit-vtype" class="input-field" required></select>
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label>Base Stand Address / District</label>
+              <input type="text" id="vmod-edit-base-address" class="input-field" />
+            </div>
+          </div>
+
+          <div style="font-size:12px;font-weight:700;color:var(--accent-primary);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:10px;padding-top:10px;border-top:1px solid var(--border-color);">
+            2. NIC Credentials
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px;margin-bottom:16px;">
+            <div class="form-group">
+              <label>NIC Card Number</label>
+              <input type="text" id="vmod-edit-nic-no" class="input-field" />
+            </div>
+            <div class="form-group">
+              <label>NIC Front Image URL</label>
+              <input type="url" id="vmod-edit-nic-front" class="input-field" />
+            </div>
+            <div class="form-group">
+              <label>NIC Back Image URL</label>
+              <input type="url" id="vmod-edit-nic-back" class="input-field" />
+            </div>
+          </div>
+
+          <div style="font-size:12px;font-weight:700;color:var(--accent-primary);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:10px;padding-top:10px;border-top:1px solid var(--border-color);">
+            3. Driving License Credentials
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px;margin-bottom:20px;">
+            <div class="form-group">
+              <label>License Number</label>
+              <input type="text" id="vmod-edit-license-no" class="input-field" />
+            </div>
+            <div class="form-group">
+              <label>License Front Image URL</label>
+              <input type="url" id="vmod-edit-license-front" class="input-field" />
+            </div>
+            <div class="form-group">
+              <label>License Back Image URL</label>
+              <input type="url" id="vmod-edit-license-back" class="input-field" />
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;gap:10px;">
+            <button type="submit" class="btn-primary" id="btn-vmod-save-edit" style="padding:9px 22px;">
+              Save & Update Driver
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-tab-content" id="mContent-raw"><pre id="m-raw-json" class="raw-json"></pre></div>
+    </div>
+    <div class="modal-footer">
+      <div class="reject-note-wrap"><input type="text" id="reject-note" placeholder="Rejection reason (optional)..." /></div>
+      <div class="modal-actions"><button class="btn-reject" onclick="rejectDriver()">Reject</button><button class="btn-approve" onclick="approveDriver()">Approve</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CREATE AGENT MODAL ===== -->
+<div id="agent-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeModalDirect('agent-modal')">
+  <div class="modal-content" style="max-width:560px;">
+    <div class="modal-header">
+      <h2>Add Regional Agent</h2>
+      <button class="modal-close" onclick="closeModalDirect('agent-modal')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body" style="padding:20px 24px;overflow-y:auto;max-height:72vh;">
+      <form onsubmit="handleCreateAgent(event)" id="agent-form">
+        <div class="agent-form-grid">
+          <div class="form-group"><label>Agent Name *</label><input type="text" id="agent-name" class="input-field" placeholder="Kandy Regional Agent" required /></div>
+          <div class="form-group"><label>Email *</label><input type="email" id="agent-email" class="input-field" placeholder="agent@servefamily.com" required /></div>
+          <div class="form-group"><label>Contact Phone</label><input type="text" id="agent-phone" class="input-field" placeholder="0771234567" /></div>
+          <div class="form-group"><label>Display Location Name</label><input type="text" id="agent-location" class="input-field" placeholder="e.g. Kandy Division" /></div>
+        </div>
+
+        <div class="form-divider">System Access & Login Credentials</div>
+
+        <div class="agent-form-grid">
+          <div class="form-group">
+            <label>Login Password <span style="font-size:11px;color:var(--text-muted);">(optional)</span></label>
+            <input type="password" id="agent-password" class="input-field" placeholder="Auto-generates if left blank" autocomplete="new-password" />
+          </div>
+          <div class="form-group" style="display:flex; align-items:center; margin-top:20px;">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; font-weight:500;">
+              <input type="checkbox" id="agent-send-email" checked style="width:16px; height:16px; accent-color:#059669;" />
+              <span>Send credentials via Email</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-divider">Sri Lanka Geographic Coverage</div>
+
+        <div class="agent-form-grid">
+          <div class="form-group">
+            <label>Province</label>
+            <select id="agent-province" class="input-field" onchange="populateDistricts(this.value)">
+              <option value="">— Select Province —</option>
+              <option value="Western">Western</option>
+              <option value="Central">Central</option>
+              <option value="Southern">Southern</option>
+              <option value="Northern">Northern</option>
+              <option value="Eastern">Eastern</option>
+              <option value="North Western">North Western</option>
+              <option value="North Central">North Central</option>
+              <option value="Uva">Uva</option>
+              <option value="Sabaragamuwa">Sabaragamuwa</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>District</label>
+            <select id="agent-district" class="input-field" onchange="populateDSDs(this.value)">
+              <option value="">— Select District —</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- DSD Checkboxes -->
+        <div id="agent-dsds-list" style="margin-bottom:16px;"></div>
+
+        <!-- Coverage Area -->
+        <div class="form-group" style="margin-bottom:20px;">
+          <label>Coverage Area on Map <span style="font-size:11px;color:var(--text-muted)">(optional — draw service zone)</span></label>
+          <button type="button" class="btn-export" style="width:100%;justify-content:center;margin-top:6px;" id="draw-coverage-btn" onclick="openDrawModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+            Draw Coverage Area on Map
+          </button>
+        </div>
+
+        <button type="submit" class="btn-primary" style="width:100%;padding:12px;">Create Regional Agent</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ===== DRAW COVERAGE AREA MODAL ===== -->
+<div id="draw-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeModalDirect('draw-modal')">
+  <div class="modal-content" style="max-width:800px;width:98%;">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <h2>Draw Coverage Area</h2>
+        <span id="draw-focus-badge" class="geo-badge district" style="font-size:12px;padding:4px 10px;">Sri Lanka</span>
+      </div>
+      <button class="modal-close" onclick="closeModalDirect('draw-modal')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div style="padding:16px 20px;">
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;" id="draw-instruction-text">Click on the map to draw a polygon around the agent's service area. Click at least 3 points, then save.</p>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <button id="draw-undo-btn"  class="btn-export" style="padding:7px 14px;">Undo Last Point</button>
+        <button id="draw-clear-btn" class="btn-export" style="padding:7px 14px;">Clear All</button>
+        <button id="draw-save-btn"  class="btn-primary" style="padding:7px 18px;margin-left:auto;">Save Coverage Area</button>
+      </div>
+      <div id="draw-map-canvas" style="height:440px;width:100%;border-radius:10px;overflow:hidden;border:1px solid var(--border-color);"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ASSIGN DRIVERS MODAL ===== -->
+<div id="assign-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeModalDirect('assign-modal')">
+  <div class="modal-content" style="max-width:560px;">
+    <div class="modal-header"><h2 id="assign-agent-title">Assign Drivers</h2><button class="modal-close" onclick="closeModalDirect('assign-modal')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div style="padding:18px 24px;">
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">Select drivers to assign to this regional agent:</p>
+      <div id="assign-drivers-list" class="assign-list-wrap"></div>
+      <div style="padding-top:16px;display:flex;justify-content:flex-end;gap:10px;"><button class="btn-export" onclick="closeModalDirect('assign-modal')">Cancel</button><button class="btn-primary" onclick="saveDriverAssignments()">Save Assignments</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== USER LOCATION MAP MODAL ===== -->
+<div id="map-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeModalDirect('map-modal')">
+  <div class="modal-content" style="max-width:720px;">
+    <div class="modal-header"><h2 id="map-modal-title">Live Location</h2><button class="modal-close" onclick="closeModalDirect('map-modal')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div style="padding:20px;"><div id="user-location-map" style="height:380px;width:100%;border-radius:10px;overflow:hidden;"></div></div>
+  </div>
+</div>
+
+<!-- ===== USERS BULK LOCATION MAP MODAL ===== -->
+<div id="users-loc-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeModalDirect('users-loc-modal')">
+  <div class="modal-content" style="max-width:900px;width:98%;">
+    <div class="modal-header">
+      <div><h2>User Locations Map</h2><p id="users-loc-count" style="font-size:12px;color:var(--text-muted);margin-top:2px;"></p></div>
+      <button class="modal-close" onclick="closeModalDirect('users-loc-modal')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div style="padding:20px;"><div id="users-loc-map-canvas" style="height:480px;width:100%;border-radius:10px;overflow:hidden;"></div></div>
+  </div>
+</div>
+
+<!-- ===== CIRCLE DETAILS & MEMBER LOCATIONS MAP MODAL ===== -->
+<div id="circle-details-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeModalDirect('circle-details-modal')">
+  <div class="modal-content" style="max-width:920px;width:98%;max-height:90vh;display:flex;flex-direction:column;">
+    <div class="modal-header">
+      <div>
+        <h2 id="circle-modal-title" style="margin:0;font-size:17px;font-weight:800;">Family Circle Details</h2>
+        <p id="circle-modal-subtitle" style="font-size:12px;color:var(--text-muted);margin:2px 0 0;">Circle members and live location map</p>
+      </div>
+      <button class="modal-close" onclick="closeModalDirect('circle-details-modal')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div style="padding:16px 20px;overflow-y:auto;flex:1;">
+      <!-- Circle Overview Meta Badges -->
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;" id="circle-modal-badges"></div>
+      
+      <!-- Member Locations Map -->
+      <div style="margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <span style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;">Member Live Locations on Map</span>
+          <span id="circle-loc-count" style="font-size:12px;color:var(--text-muted);">0 members with coordinates</span>
+        </div>
+        <div id="circle-members-map-canvas" style="height:360px;width:100%;border-radius:10px;overflow:hidden;border:1px solid var(--border-color);"></div>
+      </div>
+
+      <!-- Member List Table -->
+      <div>
+        <span style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;display:block;">Circle Members</span>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>GPS Coordinates</th>
+                <th>Last Updated</th>
+              </tr>
+            </thead>
+            <tbody id="circle-members-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== RESET PASSWORD MODAL ===== -->
+<div id="reset-pass-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeModalDirect('reset-pass-modal')">
+  <div class="modal-content" style="max-width:440px;">
+    <div class="modal-header"><h2>Reset User Password</h2><button class="modal-close" onclick="closeModalDirect('reset-pass-modal')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <form onsubmit="handleAdminResetPassword(event)" style="padding:24px;">
+      <input type="hidden" id="reset-user-id" />
+      <div style="margin-bottom:16px;background:#F8FAFC;padding:12px;border-radius:8px;border:1px solid var(--border-color);"><div style="font-size:10px;color:var(--text-muted);font-weight:700;text-transform:uppercase;margin-bottom:3px;">Account</div><strong id="reset-user-email" style="font-size:14px;">—</strong></div>
+      <div class="form-group" style="margin-bottom:20px;"><label>New Password (min. 6 chars)</label><input type="password" id="reset-new-password" class="input-field" required minlength="6" placeholder="Enter new password" /></div>
+      <div style="display:flex;gap:10px;"><button type="button" class="btn-export" onclick="closeModalDirect('reset-pass-modal')" style="flex:1">Cancel</button><button type="submit" class="btn-primary" style="flex:1">Update Password</button></div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== EDIT USER MODAL ===== -->
+<div id="edit-user-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeModalDirect('edit-user-modal')">
+  <div class="modal-content" style="max-width:500px;">
+    <div class="modal-header"><h2>Edit User Account</h2><button class="modal-close" onclick="closeModalDirect('edit-user-modal')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <form onsubmit="handleAdminUpdateUser(event)" style="padding:24px;">
+      <input type="hidden" id="edit-user-id" />
+      <div class="agent-form-grid" style="margin-bottom:14px;">
+        <div class="form-group"><label>Full Name</label><input type="text" id="edit-user-name" class="input-field" required /></div>
+        <div class="form-group"><label>Email Address</label><input type="email" id="edit-user-email" class="input-field" /></div>
+        <div class="form-group"><label>Phone Number</label><input type="text" id="edit-user-phone" class="input-field" /></div>
+      </div>
+      <div class="edit-checkboxes" style="margin-bottom:20px;">
+        <label class="checkbox-row"><input type="checkbox" id="edit-user-email-verified" /><span>Email Verified</span></label>
+        <label class="checkbox-row"><input type="checkbox" id="edit-user-phone-verified" /><span>Phone Verified</span></label>
+        <label class="checkbox-row"><input type="checkbox" id="edit-user-is-tracker" /><span>GPS Tracker Device</span></label>
+      </div>
+      <div style="display:flex;gap:10px;"><button type="button" class="btn-export" onclick="closeModalDirect('edit-user-modal')" style="flex:1">Cancel</button><button type="submit" class="btn-primary" style="flex:1">Save Changes</button></div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== EDIT SUBSCRIPTION PLAN MODAL ===== -->
+<div id="edit-plan-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeModalDirect('edit-plan-modal')">
+  <div class="modal-content" style="max-width:580px;width:95%;">
+    <div class="modal-header">
+      <div>
+        <h2 id="edit-plan-modal-title" style="margin:0;font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px;">
+          <span>💎</span> Customize Package: <span id="edit-plan-title-name">Gold</span>
+        </h2>
+        <p style="font-size:12px;color:var(--text-muted);margin:3px 0 0;">Modify monthly pricing, quota limits, and feature availability for this package</p>
+      </div>
+      <button class="modal-close" onclick="closeModalDirect('edit-plan-modal')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <form id="edit-plan-form" onsubmit="handleSavePlanDetails(event); return false;" style="padding:20px 24px;">
+      <input type="hidden" id="edit-plan-id" />
+      <input type="hidden" id="edit-plan-name" />
+
+      <!-- SECTION 1: PRICING & PROMOTION -->
+      <div class="plan-form-section">
+        <div class="plan-form-sec-title">💰 Pricing & Display</div>
+        <div class="plan-form-grid-2">
+          <div class="form-group">
+            <label>Monthly Price (LKR)</label>
+            <input type="number" id="edit-plan-price" class="input-field" min="0" step="1" required />
+          </div>
+          <div class="form-group">
+            <label>Action Button Text</label>
+            <input type="text" id="edit-plan-btn-text" class="input-field" placeholder="e.g. Subscribe" required />
+          </div>
+        </div>
+        <div class="plan-form-grid-2" style="margin-top:10px;">
+          <div class="form-group" style="display:flex;align-items:center;gap:10px;padding-top:14px;">
+            <label class="checkbox-row" style="margin:0;cursor:pointer;">
+              <input type="checkbox" id="edit-plan-is-popular" onchange="document.getElementById('edit-plan-badge-group').style.display=this.checked?'block':'none'" />
+              <span style="font-weight:700;color:var(--text-color);">Highlight as Most Popular</span>
+            </label>
+          </div>
+          <div class="form-group" id="edit-plan-badge-group">
+            <label>Popular Badge Text</label>
+            <input type="text" id="edit-plan-badge-text" class="input-field" placeholder="e.g. Most popular" />
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 2: SYSTEM RESOURCE LIMITS (ENFORCED BY BACKEND) -->
+      <div class="plan-form-section" style="margin-top:16px;">
+        <div class="plan-form-sec-title">🛡️ Resource Quota Limits (Enforced by Backend)</div>
+        <div class="plan-form-grid-3">
+          <div class="form-group">
+            <label>Max Groups</label>
+            <input type="number" id="edit-plan-max-groups" class="input-field" min="1" required />
+          </div>
+          <div class="form-group">
+            <label>Max Tracking</label>
+            <input type="number" id="edit-plan-max-tracking" class="input-field" min="1" required />
+          </div>
+          <div class="form-group">
+            <label>Max Devices</label>
+            <input type="number" id="edit-plan-max-devices" class="input-field" min="1" required />
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 3: FEATURES & PERMISSIONS -->
+      <div class="plan-form-section" style="margin-top:16px;">
+        <div class="plan-form-sec-title">✨ Features & Capabilities</div>
+        <div class="plan-form-grid-2">
+          <div class="form-group">
+            <label>Mobile Web Access</label>
+            <select id="edit-plan-mobile-web" class="input-field">
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Health Monitoring</label>
+            <select id="edit-plan-health" class="input-field">
+              <option value="No">No</option>
+              <option value="Limited">Limited</option>
+              <option value="Unlimited">Unlimited</option>
+              <option value="AI + Unlimited">AI + Unlimited</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Notifications</label>
+            <select id="edit-plan-notifications" class="input-field">
+              <option value="Limited">Limited</option>
+              <option value="Unlimited">Unlimited</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Phone Alert Support</label>
+            <select id="edit-plan-phone-alert" class="input-field">
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+          <div class="form-group" style="grid-column: span 2;">
+            <label>SMS Alerts & Dispatches</label>
+            <select id="edit-plan-sms" class="input-field">
+              <option value="No">No</option>
+              <option value="Limited">Limited</option>
+              <option value="Yes">Yes</option>
+              <option value="Unlimited">Unlimited</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px;margin-top:22px;padding-top:16px;border-top:1px solid var(--border-color);">
+        <button type="button" class="btn-export" onclick="closeModalDirect('edit-plan-modal')" style="flex:1">Cancel</button>
+        <button type="submit" class="btn-primary" id="btn-save-plan" style="flex:2;display:flex;align-items:center;justify-content:center;gap:8px;">
+          <span>💾</span> Save Package Changes
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== VEHICLE TYPE MODAL ===== -->
+<div id="modal-vehicle-type" class="modal-overlay hidden" onclick="if(event.target===this)closeModalDirect('modal-vehicle-type')">
+  <div class="modal-content" style="max-width:500px;">
+    <div class="modal-header">
+      <h2 id="vtype-modal-title">Add Vehicle Type</h2>
+      <button class="modal-close" onclick="closeModalDirect('modal-vehicle-type')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <form onsubmit="handleSaveVehicleType(event)" style="padding:24px;">
+      <input type="hidden" id="vtype-id" />
+      <div class="agent-form-grid" style="margin-bottom:18px;">
+        <div class="form-group">
+          <label>Vehicle Type Name *</label>
+          <input type="text" id="vtype-name" class="input-field" placeholder="e.g. Tuk / Flex / Tipper" required />
+        </div>
+        <div class="form-group">
+          <label>Category *</label>
+          <select id="vtype-category" class="input-field" required>
+            <option value="hire">Hire (Passenger / Taxi)</option>
+            <option value="transport">Transport (Goods / Heavy Transport)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Base Fare (LKR) *</label>
+          <input type="number" id="vtype-basefare" class="input-field" placeholder="100" required />
+        </div>
+        <div class="form-group">
+          <label>Rate Per KM (LKR) *</label>
+          <input type="number" id="vtype-rateperkm" class="input-field" placeholder="50" required />
+        </div>
+        <div class="form-group">
+          <label>Seating / Load Capacity</label>
+          <input type="number" id="vtype-seats" class="input-field" placeholder="4" value="4" />
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button type="button" class="btn-export" onclick="closeModalDirect('modal-vehicle-type')" style="flex:1">Cancel</button>
+        <button type="submit" class="btn-primary" id="btn-save-vtype" style="flex:1">Save Vehicle Type</button>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- ===== EDIT DRIVER & DOCUMENTS MODAL ===== -->
+<div id="modal-edit-driver" class="modal-overlay hidden" onclick="if(event.target===this)closeModalDirect('modal-edit-driver')">
+  <div class="modal-content" style="max-width:760px;width:95%;max-height:90vh;display:flex;flex-direction:column;">
+    <div class="modal-header">
+      <div>
+        <h2 id="edit-driver-modal-title" style="margin:0;font-size:17px;font-weight:800;">Edit Driver & Verification Documents</h2>
+        <p style="font-size:12px;color:var(--text-muted);margin:2px 0 0;">Update driver details, vehicle information, NIC and Driving License credentials</p>
+      </div>
+      <button type="button" class="modal-close" onclick="closeModalDirect('modal-edit-driver')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <form onsubmit="handleSaveEditDriver(event); return false;" id="edit-driver-form" style="display:flex;flex-direction:column;flex:1;overflow:hidden;margin:0;">
+      <div class="modal-body" style="padding:20px 24px;overflow-y:auto;flex:1;">
+        <input type="hidden" id="edit-driver-vehicle-id" />
+
+        <div style="font-size:13px;font-weight:700;color:var(--accent-primary);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:12px;">
+          1. Driver & Vehicle Information
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:14px;margin-bottom:20px;">
+          <div class="form-group">
+            <label for="edit-driver-name">Driver Full Name *</label>
+            <input type="text" id="edit-driver-name" class="input-field" required />
+          </div>
+          <div class="form-group">
+            <label for="edit-driver-mobile">Mobile Number *</label>
+            <input type="text" id="edit-driver-mobile" class="input-field" required />
+          </div>
+          <div class="form-group">
+            <label for="edit-driver-email">Email Address</label>
+            <input type="email" id="edit-driver-email" class="input-field" />
+          </div>
+          <div class="form-group">
+            <label for="edit-driver-plate">Vehicle Reg Plate No *</label>
+            <input type="text" id="edit-driver-plate" class="input-field" required />
+          </div>
+          <div class="form-group">
+            <label for="edit-driver-color">Vehicle Color</label>
+            <input type="text" id="edit-driver-color" class="input-field" />
+          </div>
+          <div class="form-group">
+            <label for="edit-driver-vtype">Vehicle Type *</label>
+            <select id="edit-driver-vtype" class="input-field" required></select>
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label for="edit-driver-base-address">Base Stand Address / Mother Location</label>
+            <input type="text" id="edit-driver-base-address" class="input-field" placeholder="e.g. Clock Tower Stand, Kandy" />
+          </div>
+        </div>
+
+        <div style="font-size:13px;font-weight:700;color:var(--accent-primary);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:12px;padding-top:10px;border-top:1px solid var(--border-color);">
+          2. NIC Document Credentials
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:14px;margin-bottom:20px;">
+          <div class="form-group">
+            <label for="edit-driver-nic-no">NIC Card Number</label>
+            <input type="text" id="edit-driver-nic-no" class="input-field" placeholder="e.g. 199412345678" />
+          </div>
+          <div class="form-group">
+            <label for="edit-driver-nic-front">NIC Front Image URL</label>
+            <input type="url" id="edit-driver-nic-front" class="input-field" placeholder="https://..." />
+          </div>
+          <div class="form-group">
+            <label for="edit-driver-nic-back">NIC Back Image URL</label>
+            <input type="url" id="edit-driver-nic-back" class="input-field" placeholder="https://..." />
+          </div>
+        </div>
+
+        <div style="font-size:13px;font-weight:700;color:var(--accent-primary);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:12px;padding-top:10px;border-top:1px solid var(--border-color);">
+          3. Driving License Document Credentials
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:14px;margin-bottom:10px;">
+          <div class="form-group">
+            <label for="edit-driver-license-no">Driving License Number</label>
+            <input type="text" id="edit-driver-license-no" class="input-field" placeholder="e.g. B1234567" />
+          </div>
+          <div class="form-group">
+            <label for="edit-driver-license-front">License Front Image URL</label>
+            <input type="url" id="edit-driver-license-front" class="input-field" placeholder="https://..." />
+          </div>
+          <div class="form-group">
+            <label for="edit-driver-license-back">License Back Image URL</label>
+            <input type="url" id="edit-driver-license-back" class="input-field" placeholder="https://..." />
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:12px;padding:14px 24px;border-top:1px solid var(--border-color);background:#FFF;flex-shrink:0;">
+        <button type="button" class="btn-export" onclick="closeModalDirect('modal-edit-driver')">Cancel</button>
+        <button type="submit" class="btn-primary" id="btn-save-edit-driver" style="padding:10px 24px;">
+          Save Driver & Documents
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== REGISTER NEW DRIVER MODAL ===== -->
+<div id="modal-register-driver" class="modal-overlay hidden" style="position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100vh;background:rgba(15,23,42,0.7);backdrop-filter:blur(4px);z-index:2147483647;display:none;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)closeModalDirect('modal-register-driver')">
+  <div class="modal-content" style="max-width:740px;width:95%;max-height:90vh;display:flex;flex-direction:column;background:#FFFFFF;border-radius:16px;box-shadow:0 24px 48px rgba(0,0,0,0.35);overflow:hidden;z-index:2147483647;position:relative;">
+    <div class="modal-header">
+      <div>
+        <h2 style="margin:0;font-size:18px;font-weight:800;color:var(--text-primary);">Register New Driver & Vehicle</h2>
+        <p style="font-size:12px;color:var(--text-muted);margin:3px 0 0;">Register driver, assign vehicle type, plate number & credentials</p>
+      </div>
+      <button type="button" class="modal-close" onclick="closeModalDirect('modal-register-driver')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <form onsubmit="handleRegisterNewDriver(event); return false;" id="register-driver-form" style="display:flex;flex-direction:column;flex:1;overflow:hidden;margin:0;">
+      <div class="modal-body" style="padding:24px;overflow-y:auto;flex:1;">
+        <div style="font-size:12px;font-weight:700;color:var(--accent-primary);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:14px;">
+          1. Driver & Vehicle Information
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:24px;">
+          <div class="form-group">
+            <label for="reg-driver-name">Driver Full Name *</label>
+            <input type="text" id="reg-driver-name" class="input-field" placeholder="e.g. Saman Kumara" required />
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group">
+              <label for="reg-driver-mobile">Mobile Number *</label>
+              <input type="text" id="reg-driver-mobile" class="input-field" placeholder="e.g. 0771234567" required />
+            </div>
+            <div class="form-group">
+              <label for="reg-driver-email">Email (Optional)</label>
+              <input type="email" id="reg-driver-email" class="input-field" placeholder="driver@example.com" />
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group">
+              <label for="reg-driver-plate">Vehicle Reg Plate No *</label>
+              <input type="text" id="reg-driver-plate" class="input-field" placeholder="e.g. AB-1234" required />
+            </div>
+            <div class="form-group">
+              <label for="reg-driver-color">Vehicle Color</label>
+              <input type="text" id="reg-driver-color" class="input-field" placeholder="e.g. White, Black, Red" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="reg-driver-vtype">Vehicle Type *</label>
+            <select id="reg-driver-vtype" class="input-field" required></select>
+          </div>
+          <div class="form-group">
+            <label for="reg-driver-base-address">Base Stand Address / Operating District</label>
+            <input type="text" id="reg-driver-base-address" class="input-field" placeholder="e.g. Clock Tower Stand, Kandy" />
+          </div>
+        </div>
+
+        <div style="font-size:12px;font-weight:700;color:var(--accent-primary);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:14px;padding-top:14px;border-top:1px solid var(--border-color);">
+          2. NIC Credentials (Optional)
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:24px;">
+          <div class="form-group">
+            <label for="reg-driver-nic-no">NIC Card Number</label>
+            <input type="text" id="reg-driver-nic-no" class="input-field" placeholder="e.g. 199412345678" />
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group">
+              <label for="reg-driver-nic-front">NIC Front Image URL</label>
+              <input type="url" id="reg-driver-nic-front" class="input-field" placeholder="https://..." />
+            </div>
+            <div class="form-group">
+              <label for="reg-driver-nic-back">NIC Back Image URL</label>
+              <input type="url" id="reg-driver-nic-back" class="input-field" placeholder="https://..." />
+            </div>
+          </div>
+        </div>
+
+        <div style="font-size:12px;font-weight:700;color:var(--accent-primary);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:14px;padding-top:14px;border-top:1px solid var(--border-color);">
+          3. Driving License Credentials (Optional)
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:14px;">
+          <div class="form-group">
+            <label for="reg-driver-license-no">Driving License Number</label>
+            <input type="text" id="reg-driver-license-no" class="input-field" placeholder="e.g. B1234567" />
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group">
+              <label for="reg-driver-license-front">License Front Image URL</label>
+              <input type="url" id="reg-driver-license-front" class="input-field" placeholder="https://..." />
+            </div>
+            <div class="form-group">
+              <label for="reg-driver-license-back">License Back Image URL</label>
+              <input type="url" id="reg-driver-license-back" class="input-field" placeholder="https://..." />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:12px;padding:16px 24px;border-top:1px solid var(--border-color);background:#FFF;flex-shrink:0;">
+        <button type="button" class="btn-export" onclick="closeModalDirect('modal-register-driver')">Cancel</button>
+        <button type="submit" class="btn-primary" id="btn-submit-register-driver" style="padding:10px 24px;">
+          Register & Approve Driver
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== TRIP & BOOKING IN-DEPTH DETAILS MODAL ===== -->
+<div id="trip-details-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeTripDetailsModal()">
+  <div class="modal-content" style="max-width:880px;width:96%;max-height:92vh;display:flex;flex-direction:column;border-radius:16px;">
+    <div class="modal-header" style="padding:18px 24px;border-bottom:1px solid var(--border-color);display:flex;align-items:center;justify-content:space-between;background:#FFFFFF;flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <h2 style="font-size:18px;font-weight:800;color:var(--text-main);margin:0;">Trip & Booking Details</h2>
+        <span id="trip-modal-code" style="font-family:monospace;font-size:13px;padding:3px 9px;background:#0F172A;color:#F8FAFC;border-radius:6px;font-weight:700;">—</span>
+        <span id="trip-modal-status-badge"></span>
+      </div>
+      <button class="modal-close" onclick="closeTripDetailsModal()" title="Close">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-body" id="trip-modal-body" style="padding:22px 24px;overflow-y:auto;flex:1;background:#F8FAFC;">
+      <!-- Content populated dynamically by renderTripDetailsModal -->
+    </div>
+
+    <div class="modal-footer" style="padding:14px 24px;border-top:1px solid var(--border-color);display:flex;align-items:center;justify-content:space-between;background:#FFFFFF;flex-shrink:0;">
+      <div id="trip-modal-footer-meta" style="font-size:12px;color:var(--text-muted);"></div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <button type="button" class="btn-export" onclick="closeTripDetailsModal()">Close</button>
+        <button type="button" class="btn-export" id="btn-trip-modal-edit-fare" onclick="openEditFareModal(currentTripModalBookingId)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          Edit Fare
+        </button>
+        <button type="button" class="btn-export" id="btn-trip-modal-reassign" style="color:#4F46E5;border-color:#C7D2FE;" onclick="openReassignModal(currentTripModalBookingId)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          Reassign Driver
+        </button>
+        <button type="button" class="btn-export" id="btn-trip-modal-status" style="color:#0284C7;border-color:#BAE6FD;" onclick="openChangeStatusModal(currentTripModalBookingId)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Change Status
+        </button>
+        <button type="button" class="btn-approve" id="btn-trip-modal-view-receipt" onclick="openTripReceiptModal(currentTripModalBookingId)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          View Final Bill
+        </button>
+        <button type="button" class="btn-reject hidden" id="btn-trip-modal-cancel" onclick="cancelBookingFromModal()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Cancel Trip
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== OFFICIAL TRIP RECEIPT & BILL MODAL ===== -->
+<div id="trip-receipt-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeTripReceiptModal()">
+  <div class="modal-content" style="max-width:680px;width:95%;border-radius:16px;max-height:92vh;display:flex;flex-direction:column;background:#FFFFFF;">
+    <div class="modal-header" style="padding:16px 24px;border-bottom:1px solid var(--border-color);display:flex;align-items:center;justify-content:space-between;background:#FFFFFF;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <h2 style="font-size:17px;font-weight:800;color:var(--text-main);margin:0;">Official Trip Invoice & Receipt</h2>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="btn-sm btn-export" onclick="printTripReceipt()" title="Print this receipt" style="display:inline-flex;align-items:center;gap:5px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Print Bill
+        </button>
+        <button class="modal-close" onclick="closeTripReceiptModal()" title="Close">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="modal-body" id="trip-receipt-modal-body" style="padding:24px;overflow-y:auto;flex:1;background:#F8FAFC;">
+      <!-- Populated dynamically -->
+    </div>
+    <div class="modal-footer" style="padding:14px 24px;border-top:1px solid var(--border-color);display:flex;align-items:center;justify-content:space-between;background:#FFFFFF;">
+      <span style="font-size:12px;color:var(--text-muted);">Serve Family Mobility Platform &copy; 2026</span>
+      <div style="display:flex;gap:8px;">
+        <button type="button" class="btn-export" onclick="closeTripReceiptModal()">Close</button>
+        <button type="button" class="btn-approve" onclick="printTripReceipt()" style="display:inline-flex;align-items:center;gap:6px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Print Receipt
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== REASSIGN DRIVER MODAL ===== -->
+<div id="modal-reassign-driver" class="modal-overlay hidden" onclick="if(event.target===this)closeReassignModal()">
+  <div class="modal-content" style="max-width:580px;width:95%;border-radius:16px;max-height:90vh;display:flex;flex-direction:column;">
+    <div class="modal-header" style="padding:18px 24px;border-bottom:1px solid var(--border-color);display:flex;align-items:center;justify-content:space-between;background:#FFFFFF;">
+      <div>
+        <h2 style="font-size:17px;font-weight:800;color:var(--text-main);margin:0;">Assign / Reassign Driver</h2>
+        <p style="font-size:12px;color:var(--text-muted);margin:2px 0 0 0;" id="reassign-modal-subtext">Select an active approved driver for trip</p>
+      </div>
+      <button class="modal-close" onclick="closeReassignModal()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div style="padding:14px 24px;background:#F8FAFC;border-bottom:1px solid var(--border-color);display:flex;gap:10px;align-items:center;">
+      <input type="text" id="reassign-search-input" placeholder="Search driver by name, phone, plate..." oninput="filterReassignDriversList()" style="flex:1;padding:8px 12px;border:1px solid var(--border-color);border-radius:8px;font-size:13px;outline:none;background:#FFF;" />
+      <button type="button" class="btn-export" style="color:#DC2626;border-color:#FCA5A5;" onclick="unassignDriverFromTrip()" title="Unassign driver and re-broadcast request to all nearby drivers">
+        Unassign Driver
+      </button>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:16px 24px;max-height:400px;" id="reassign-drivers-list">
+      <div style="padding:30px;text-align:center;color:var(--text-muted);">
+        <div class="spinner" style="margin:0 auto 10px auto;"></div> Loading fleet drivers...
+      </div>
+    </div>
+    <div class="modal-footer" style="padding:12px 24px;border-top:1px solid var(--border-color);display:flex;justify-content:flex-end;">
+      <button type="button" class="btn-export" onclick="closeReassignModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CHANGE STATUS MODAL ===== -->
+<div id="modal-change-trip-status" class="modal-overlay hidden" onclick="if(event.target===this)closeChangeStatusModal()">
+  <div class="modal-content" style="max-width:440px;width:95%;border-radius:16px;">
+    <div class="modal-header" style="padding:18px 24px;border-bottom:1px solid var(--border-color);display:flex;align-items:center;justify-content:space-between;">
+      <h2 style="font-size:17px;font-weight:800;color:var(--text-main);margin:0;">Update Trip Status</h2>
+      <button class="modal-close" onclick="closeChangeStatusModal()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <form onsubmit="submitChangeTripStatus(event)" style="padding:20px 24px;">
+      <div style="margin-bottom:16px;">
+        <label style="font-size:12px;font-weight:700;color:var(--text-main);display:block;margin-bottom:6px;">Select New Status</label>
+        <select id="change-status-select" style="width:100%;padding:10px 12px;border:1px solid var(--border-color);border-radius:8px;font-size:13px;outline:none;" onchange="toggleCancelReasonInput(this.value)">
+          <option value="pending">Pending (Searching Drivers)</option>
+          <option value="accepted">Accepted (Driver Assigned)</option>
+          <option value="arrived">Arrived (Driver at Pickup)</option>
+          <option value="in_transit">In Transit (Trip Started)</option>
+          <option value="completed">Completed (Trip Ended)</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+      <div id="change-status-reason-group" style="margin-bottom:20px;" class="hidden">
+        <label style="font-size:12px;font-weight:700;color:var(--text-main);display:block;margin-bottom:6px;">Cancellation Reason</label>
+        <input type="text" id="change-status-reason" placeholder="e.g. Passenger requested, vehicle breakdown..." style="width:100%;padding:10px 12px;border:1px solid var(--border-color);border-radius:8px;font-size:13px;outline:none;" />
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:10px;">
+        <button type="button" class="btn-export" onclick="closeChangeStatusModal()">Cancel</button>
+        <button type="submit" class="btn-primary" style="padding:8px 20px;">Update Status</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== EDIT FARE & PAYMENT MODAL ===== -->
+<div id="modal-edit-trip-fare" class="modal-overlay hidden" onclick="if(event.target===this)closeEditFareModal()">
+  <div class="modal-content" style="max-width:440px;width:95%;border-radius:16px;">
+    <div class="modal-header" style="padding:18px 24px;border-bottom:1px solid var(--border-color);display:flex;align-items:center;justify-content:space-between;">
+      <h2 style="font-size:17px;font-weight:800;color:var(--text-main);margin:0;">Edit Fare & Payment</h2>
+      <button class="modal-close" onclick="closeEditFareModal()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <form onsubmit="submitEditTripFare(event)" style="padding:20px 24px;">
+      <div style="margin-bottom:16px;">
+        <label style="font-size:12px;font-weight:700;color:var(--text-main);display:block;margin-bottom:6px;">Total Fare (LKR)</label>
+        <input type="number" step="0.01" id="edit-fare-amount" required style="width:100%;padding:10px 12px;border:1px solid var(--border-color);border-radius:8px;font-size:13px;outline:none;" />
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="font-size:12px;font-weight:700;color:var(--text-main);display:block;margin-bottom:6px;">Payment Status</label>
+        <select id="edit-payment-status" style="width:100%;padding:10px 12px;border:1px solid var(--border-color);border-radius:8px;font-size:13px;outline:none;">
+          <option value="pending">Pending</option>
+          <option value="paid">Paid</option>
+          <option value="failed">Failed</option>
+        </select>
+      </div>
+      <div style="margin-bottom:20px;">
+        <label style="font-size:12px;font-weight:700;color:var(--text-main);display:block;margin-bottom:6px;">Payment Method</label>
+        <select id="edit-payment-method" style="width:100%;padding:10px 12px;border:1px solid var(--border-color);border-radius:8px;font-size:13px;outline:none;">
+          <option value="cash">Cash</option>
+          <option value="card">Card</option>
+          <option value="wallet">Wallet</option>
+        </select>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:10px;">
+        <button type="button" class="btn-export" onclick="closeEditFareModal()">Cancel</button>
+        <button type="submit" class="btn-primary" style="padding:8px 20px;">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+<script src="/socket.io/socket.io.js"></script>
+<script src="app.js?v=20261005_3"></script>
+</body>
+</html>

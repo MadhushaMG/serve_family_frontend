@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Customer Ride Status Preview – PickMe Style</title>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+
+    body {
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      min-height: 100vh;
+      padding: 30px 20px;
+    }
+
+    .page-title {
+      text-align: center;
+      font-size: 26px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+    .page-sub {
+      text-align: center;
+      font-size: 13px;
+      color: #64748b;
+      margin-bottom: 30px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 28px;
+      max-width: 1500px;
+      margin: 0 auto;
+    }
+
+    .state-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+
+    .state-label {
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      text-transform: uppercase;
+    }
+    .state-desc {
+      font-size: 12px;
+      color: #475569;
+      text-align: center;
+      max-width: 340px;
+      margin-bottom: 6px;
+    }
+
+    /* Phone Frame */
+    .phone {
+      width: 100%;
+      max-width: 380px;
+      background: #000;
+      border-radius: 40px;
+      padding: 10px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    }
+    .screen {
+      background: #0f172a;
+      border-radius: 32px;
+      overflow: hidden;
+      min-height: 660px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      position: relative;
+    }
+
+    /* ==============================================================
+       COLORED CARD CONTAINER (PickMe style — full-status color)
+    =============================================================== */
+    .card {
+      background: #fff;
+      border-top-left-radius: 28px;
+      border-top-right-radius: 28px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Top colored strip (status header — always at top) */
+    .status-strip {
+      padding: 18px 24px 22px;
+      color: #fff;
+      position: relative;
+    }
+    .status-strip::after {
+      content: '';
+      position: absolute;
+      bottom: -14px; left: 0; right: 0;
+      height: 28px;
+      background: inherit;
+      border-radius: 0 0 50% 50% / 0 0 100% 100%;
+      z-index: 0;
+    }
+
+    .strip-row {
+      display: flex; align-items: center; gap: 12px;
+      position: relative; z-index: 2;
+    }
+    .strip-icon-circle {
+      width: 44px; height: 44px; border-radius: 22px;
+      background: rgba(255,255,255,0.2);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .strip-title {
+      font-size: 15px; font-weight: 800; letter-spacing: 0.5px;
+      color: #fff;
+    }
+    .strip-sub {
+      font-size: 12px; font-weight: 500;
+      color: rgba(255,255,255,0.88);
+      margin-top: 2px;
+    }
+
+    /* status-specific strip colors */
+    .strip-pending { background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%); }
+    .strip-accepted { background: linear-gradient(135deg, #22C55E 0%, #15803D 100%); }
+    .strip-arrived { background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); }
+    .strip-transit { background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%); }
+    .strip-completed { background: linear-gradient(135deg, #10B981 0%, #059669 100%); }
+    .strip-cancelled { background: linear-gradient(135deg, #EF4444 0%, #B91C1C 100%); }
+
+    /* Body */
+    .card-body {
+      padding: 32px 24px 28px;
+      position: relative;
+      z-index: 1;
+      background: #fff;
+    }
+
+    /* ==============================================================
+       SEARCHING (pending) — radar animation
+    =============================================================== */
+    .radar-block { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
+    .radar-wrap {
+      width: 78px; height: 78px; border-radius: 39px;
+      background: #EFF6FF;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 12px;
+      position: relative;
+    }
+    .radar-pulse {
+      position: absolute; inset: 0;
+      border: 2px solid #93C5FD;
+      border-radius: 39px;
+      animation: pulse 1.6s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.25); opacity: 0.3; }
+    }
+    .radar-icon { animation: spin 3s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ==============================================================
+       DRIVER CARD (color-tinted by status)
+    =============================================================== */
+    .driver-card {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px; border-radius: 16px;
+      margin-bottom: 16px;
+      border-width: 1.5px; border-style: solid;
+    }
+    /* status tints */
+    .driver-card-accepted { background: #F0FDF4; border-color: #86EFAC; }
+    .driver-card-arrived { background: #FFFBEB; border-color: #FCD34D; }
+    .driver-card-transit { background: #EFF6FF; border-color: #93C5FD; }
+    .driver-card-completed { background: #ECFDF5; border-color: #6EE7B7; }
+
+    .avatar {
+      width: 52px; height: 52px; border-radius: 26px;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: bold; font-size: 20px;
+      border: 2.5px solid #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+    .avatar-accepted { background: #16A34A; }
+    .avatar-arrived { background: #D97706; }
+    .avatar-transit { background: #2563EB; }
+    .avatar-completed { background: #059669; }
+
+    .driver-info { flex: 1; }
+    .driver-name { font-size: 16px; font-weight: 800; color: #0F172A; }
+    .driver-name-fallback { color: #94A3B8; font-style: italic; }
+    .vehicle-details { font-size: 12px; color: #64748B; margin-top: 3px; }
+    .plate {
+      display: inline-block;
+      background: #FEF08A;
+      padding: 2px 8px; border-radius: 6px; margin-top: 4px;
+      font-size: 11px; font-weight: 800; color: #854D0E;
+      border: 1px solid #FDE047;
+    }
+    .call-btn {
+      width: 46px; height: 46px; border-radius: 23px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 3px 10px rgba(22,163,74,0.35);
+    }
+    .call-btn-green { background: #16A34A; }
+    .call-btn-amber { background: #D97706; box-shadow: 0 3px 10px rgba(217,119,6,0.35); }
+    .call-btn-blue { background: #2563EB; box-shadow: 0 3px 10px rgba(37,99,235,0.35); }
+
+    /* ==============================================================
+       TRIP CARD (status-tinted)
+    =============================================================== */
+    .trip-card {
+      padding: 16px;
+      border-radius: 16px;
+      margin-bottom: 16px;
+      border-width: 1px; border-style: solid;
+    }
+    .trip-neutral { background: #F1F5F9; border-color: #E2E8F0; }
+    .trip-accepted { background: #F0FDF4; border-color: #BBF7D0; }
+    .trip-arrived { background: #FFFBEB; border-color: #FDE68A; }
+    .trip-transit { background: #EFF6FF; border-color: #BFDBFE; }
+    .trip-completed { background: #ECFDF5; border-color: #A7F3D0; }
+
+    .loc-row { display: flex; align-items: flex-start; }
+    .dot { width: 12px; height: 12px; border-radius: 6px; margin-top: 3px; margin-right: 12px;
+           border: 2px solid #fff; box-shadow: 0 0 0 1.5px currentColor; }
+    .dot-green { background: #10B981; color: #10B981; }
+    .dot-red { background: #EF4444; color: #EF4444; }
+    .connector { width: 2px; height: 20px; background: #CBD5E1; margin-left: 5px; margin-top: 2px; margin-bottom: 2px; }
+    .loc-label { font-size: 10px; font-weight: 800; color: #94A3B8; letter-spacing: 0.8px; }
+    .loc-value { font-size: 13px; font-weight: 600; color: #1E293B; margin-top: 2px; }
+
+    /* ==============================================================
+       FARE ROW (status-tinted)
+    =============================================================== */
+    .fare-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 16px; border-radius: 16px;
+      margin-bottom: 16px;
+      border-width: 1px; border-style: solid;
+    }
+    .fare-accepted { background: #F0FDF4; border-color: #BBF7D0; }
+    .fare-arrived { background: #FFFBEB; border-color: #FDE68A; }
+    .fare-transit { background: #EFF6FF; border-color: #BFDBFE; }
+    .fare-completed { background: #ECFDF5; border-color: #A7F3D0; }
+    .fare-neutral { background: #EFF6FF; border-color: #BFDBFE; }
+
+    .fare-label { font-size: 10px; font-weight: 800; letter-spacing: 0.8px; }
+    .fare-value { font-size: 20px; font-weight: 800; margin-top: 3px; }
+    .dist-value { font-size: 15px; font-weight: 700; color: #1E293B; margin-top: 3px; }
+
+    /* Text colors matching each status */
+    .txt-accepted { color: #16A34A; }
+    .txt-arrived { color: #D97706; }
+    .txt-transit { color: #2563EB; }
+    .txt-completed { color: #059669; }
+
+    /* ==============================================================
+       BUTTONS
+    =============================================================== */
+    .cancel-btn {
+      display: flex; justify-content: center; align-items: center;
+      height: 50px; border-radius: 14px;
+      background: #FEF2F2; border: 1.5px solid #FCA5A5;
+      gap: 8px; color: #DC2626;
+      font-weight: 800; font-size: 13px; letter-spacing: 0.5px;
+      width: 100%; cursor: pointer;
+    }
+    .primary-btn {
+      display: flex; justify-content: center; align-items: center;
+      height: 50px; border-radius: 14px;
+      color: #fff;
+      font-weight: 800; font-size: 13px; letter-spacing: 0.5px;
+      width: 100%; cursor: pointer; border: none; gap: 8px;
+    }
+    .btn-disabled {
+      opacity: 0.5; background: #F3F4F6; border-color: #E5E7EB;
+      color: #94A3B8; cursor: not-allowed;
+    }
+
+    /* ==============================================================
+       LIVE PROGRESS BAR (for arrived/in-transit)
+    =============================================================== */
+    .progress-track {
+      background: rgba(255,255,255,0.25);
+      height: 6px; border-radius: 3px;
+      overflow: hidden; margin-top: 10px;
+      position: relative; z-index: 2;
+    }
+    .progress-fill {
+      background: #fff;
+      height: 100%;
+      border-radius: 3px;
+      animation: progressPulse 2s ease-in-out infinite;
+    }
+    @keyframes progressPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    /* Notes */
+    .bug-note, .fix-note {
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 11px;
+      max-width: 340px;
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+    .bug-note { background: #FEF2F2; border: 1px dashed #FCA5A5; color: #991B1B; }
+    .fix-note { background: #ECFDF5; border: 1px dashed #6EE7B7; color: #065F46; }
+
+    /* Rating stars */
+    .rating-row { display: flex; gap: 3px; margin-top: 6px; align-items: center; }
+    .star { color: #F59E0B; font-size: 14px; }
+    .star-empty { color: #CBD5E1; font-size: 14px; }
+
+    /* ==============================================================
+       RECEIPT STYLES (Serve Family branded)
+    =============================================================== */
+    .receipt-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 380px;
+    }
+    .receipt-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-weight: 800; font-size: 11px;
+      cursor: pointer; border: none; color: #fff;
+      letter-spacing: 0.3px;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .receipt-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,0.15); }
+    .receipt-btn-pdf { background: linear-gradient(135deg, #EF4444, #B91C1C); }
+    .receipt-btn-png { background: linear-gradient(135deg, #3B82F6, #1D4ED8); }
+    .receipt-btn-print { background: linear-gradient(135deg, #10B981, #059669); }
+
+    .receipt {
+      width: 100%;
+      max-width: 380px;
+      background: #fff;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.15);
+    }
+
+    /* Receipt header (gradient blue→green matching logo) */
+    .receipt-header {
+      background: linear-gradient(135deg, #2563EB 0%, #10B981 100%);
+      padding: 24px 20px 20px;
+      color: #fff;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .receipt-header::before {
+      content: ''; position: absolute;
+      top: -50%; right: -30%;
+      width: 180px; height: 180px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 50%;
+    }
+    .receipt-header::after {
+      content: ''; position: absolute;
+      bottom: -50%; left: -20%;
+      width: 160px; height: 160px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 50%;
+    }
+    .logo-wrap {
+      width: 70px; height: 70px;
+      background: #fff;
+      border-radius: 18px;
+      margin: 0 auto 12px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+      position: relative; z-index: 2;
+    }
+    .logo-wrap img { width: 58px; height: 58px; object-fit: contain; }
+    .brand-name {
+      font-size: 20px; font-weight: 800;
+      letter-spacing: 0.5px;
+      position: relative; z-index: 2;
+    }
+    .brand-tagline {
+      font-size: 10px; font-weight: 500;
+      letter-spacing: 3px; opacity: 0.9;
+      margin-top: 3px; text-transform: uppercase;
+      position: relative; z-index: 2;
+    }
+    .receipt-status-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,0.25);
+      backdrop-filter: blur(10px);
+      padding: 5px 12px; border-radius: 20px;
+      margin-top: 12px;
+      font-size: 10px; font-weight: 800;
+      letter-spacing: 1px;
+      position: relative; z-index: 2;
+    }
+
+    /* Receipt meta strip */
+    .receipt-meta {
+      display: flex; justify-content: space-between;
+      background: #F8FAFC;
+      padding: 10px 20px;
+      border-bottom: 1px dashed #CBD5E1;
+    }
+    .meta-label {
+      font-size: 8px; font-weight: 800;
+      color: #94A3B8; letter-spacing: 0.8px;
+    }
+    .meta-value {
+      font-size: 11px; font-weight: 800;
+      color: #0F172A; margin-top: 2px;
+    }
+
+    /* Receipt sections */
+    .r-section {
+      padding: 14px 20px;
+      border-bottom: 1px dashed #E2E8F0;
+    }
+    .r-section-title {
+      font-size: 9px; font-weight: 800;
+      color: #94A3B8; letter-spacing: 1px;
+      margin-bottom: 10px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .r-driver-block { display: flex; align-items: center; gap: 10px; }
+    .r-driver-avatar {
+      width: 46px; height: 46px; border-radius: 23px;
+      background: linear-gradient(135deg, #2563EB, #10B981);
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 20px;
+    }
+    .r-driver-details h3 { font-size: 14px; font-weight: 800; color: #0F172A; }
+    .r-driver-details p { font-size: 11px; color: #64748B; margin-top: 2px; }
+
+    /* Trip route (receipt) */
+    .r-route-item { display: flex; align-items: flex-start; gap: 10px; }
+    .r-route-dot {
+      width: 10px; height: 10px; border-radius: 5px; margin-top: 3px;
+      border: 2px solid #fff; flex-shrink: 0;
+    }
+    .r-dot-pickup { background: #10B981; box-shadow: 0 0 0 1.5px #10B981; }
+    .r-dot-drop { background: #EF4444; box-shadow: 0 0 0 1.5px #EF4444; }
+    .r-route-connector {
+      width: 2px; height: 20px;
+      margin-left: 4px; margin-top: 2px; margin-bottom: 2px;
+      border-left: 2px dashed #CBD5E1;
+    }
+    .r-route-label { font-size: 9px; font-weight: 800; color: #94A3B8; letter-spacing: 0.7px; }
+    .r-route-value { font-size: 12px; font-weight: 700; color: #1E293B; margin-top: 2px; }
+    .r-route-time { font-size: 9px; color: #64748B; margin-top: 2px; font-weight: 600; }
+
+    /* Stats grid */
+    .r-stats-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+    }
+    .r-stat-cell {
+      background: #F8FAFC; border-radius: 10px;
+      padding: 8px 4px; text-align: center;
+      border: 1px solid #E2E8F0;
+    }
+    .r-stat-icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 26px; height: 26px; border-radius: 8px;
+      margin-bottom: 5px;
+    }
+    .r-stat-value { font-size: 12px; font-weight: 800; color: #0F172A; }
+    .r-stat-label { font-size: 8px; color: #64748B; font-weight: 800; letter-spacing: 0.4px; margin-top: 2px; }
+
+    /* Fare breakdown */
+    .r-fare-line {
+      display: flex; justify-content: space-between;
+      padding: 5px 0;
+      font-size: 12px;
+    }
+    .r-fare-key { color: #475569; font-weight: 500; }
+    .r-fare-val { color: #0F172A; font-weight: 700; }
+    .r-fare-discount .r-fare-val { color: #16A34A; }
+
+    /* Total block */
+    .r-total-block {
+      background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
+      margin: 10px 20px;
+      padding: 14px;
+      border-radius: 12px;
+      border: 2px dashed #3B82F6;
+    }
+    .r-total-label { font-size: 10px; font-weight: 800; color: #1D4ED8; letter-spacing: 1px; }
+    .r-total-value { font-size: 24px; font-weight: 900; color: #1D4ED8; margin-top: 2px; }
+    .r-total-subtext { font-size: 10px; color: #3B82F6; margin-top: 2px; font-weight: 600; }
+
+    /* Payment method */
+    .r-payment-block {
+      display: flex; align-items: center; gap: 10px;
+      background: #F0FDF4;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #BBF7D0;
+      margin: 0 20px 10px;
+    }
+    .r-payment-icon {
+      width: 32px; height: 32px; border-radius: 9px;
+      background: #16A34A;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .r-payment-method { font-size: 12px; font-weight: 800; color: #0F172A; }
+    .r-payment-status { font-size: 10px; color: #16A34A; font-weight: 700; margin-top: 1px; }
+    .r-payment-badge {
+      background: #16A34A; color: #fff;
+      font-size: 9px; font-weight: 800;
+      padding: 3px 8px; border-radius: 20px;
+      letter-spacing: 0.5px;
+    }
+
+    /* QR verification */
+    .r-qr-block {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 20px 14px;
+      background: #F8FAFC;
+    }
+    .r-qr-code {
+      width: 50px; height: 50px;
+      background: #fff;
+      border: 2px solid #E2E8F0;
+      border-radius: 8px;
+      background-image:
+        linear-gradient(90deg, #000 25%, transparent 25%, transparent 50%, #000 50%, #000 75%, transparent 75%),
+        linear-gradient(0deg, #000 25%, transparent 25%, transparent 50%, #000 50%, #000 75%, transparent 75%);
+      background-size: 7px 7px;
+    }
+    .r-qr-info { flex: 1; margin-left: 10px; }
+    .r-qr-info h4 { font-size: 11px; font-weight: 800; color: #0F172A; }
+    .r-qr-info p { font-size: 9px; color: #64748B; margin-top: 2px; }
+    .r-verification-code {
+      font-family: monospace;
+      font-size: 11px; font-weight: 800;
+      color: #2563EB; background: #EFF6FF;
+      padding: 2px 6px; border-radius: 4px;
+      display: inline-block; margin-top: 3px;
+      letter-spacing: 1.5px;
+    }
+
+    /* Receipt footer */
+    .r-footer {
+      background: #0F172A; color: #fff;
+      padding: 16px 20px;
+      text-align: center;
+    }
+    .r-footer-thankyou {
+      font-size: 13px; font-weight: 800;
+      color: #fff; margin-bottom: 3px;
+    }
+    .r-footer-tag {
+      font-size: 10px; color: #94A3B8; margin-bottom: 10px;
+    }
+    .r-footer-contact {
+      display: flex; justify-content: center; gap: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255,255,255,0.15);
+      flex-wrap: wrap;
+    }
+    .r-contact-item {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 9px; color: #CBD5E1; font-weight: 600;
+    }
+    .r-footer-legal {
+      font-size: 8px; color: #64748B;
+      margin-top: 8px; letter-spacing: 0.5px;
+    }
+    .r-rating-row .r-star { color: #F59E0B; font-size: 11px; }
+    .r-rating-row .r-star-empty { color: #CBD5E1; font-size: 11px; }
+    .r-plate {
+      display: inline-block;
+      background: #FEF08A;
+      padding: 2px 7px; border-radius: 5px; margin-top: 3px;
+      font-size: 9px; font-weight: 800; color: #854D0E;
+      border: 1px solid #FDE047;
+    }
+  </style>
+</head>
+<body>
+  <h1 class="page-title">Customer Ride Tracking – PickMe-Style Status Colors</h1>
+  <p class="page-sub">Full card theme changes with status. Status stands out at a glance.</p>
+
+  <div class="grid">
+
+    <!-- ============================================================
+         STATE 1: PENDING
+    ============================================================= -->
+    <div class="state-wrap">
+      <div class="state-label" style="background: #2563EB;">1 · PENDING</div>
+      <p class="state-desc">Blue theme = searching. Full-width status strip + radar animation.</p>
+      <div class="phone">
+        <div class="screen">
+          <div class="card">
+            <div class="status-strip strip-pending">
+              <div class="strip-row">
+                <div class="strip-icon-circle">
+                  <i data-lucide="search" style="width:22px;height:22px;color:#fff"></i>
+                </div>
+                <div>
+                  <div class="strip-title">SEARCHING FOR DRIVER</div>
+                  <div class="strip-sub">Checking every 10 seconds…</div>
+                </div>
+              </div>
+              <div class="progress-track"><div class="progress-fill" style="width:60%"></div></div>
+            </div>
+
+            <div class="card-body">
+              <div class="radar-block">
+                <div class="radar-wrap">
+                  <div class="radar-pulse"></div>
+                  <div class="radar-icon"><i data-lucide="car" style="width:34px;height:34px;color:#2563EB;"></i></div>
+                </div>
+                <div style="font-size:14px; font-weight:700; color:#1E293B;">Connecting to nearby drivers</div>
+                <div style="font-size:12px; color:#64748B; margin-top:3px;">Drivers near Boralesgamuwa are being notified</div>
+              </div>
+
+              <div class="trip-card trip-neutral">
+                <div class="loc-row"><div class="dot dot-green"></div><div style="flex:1"><div class="loc-label">PICKUP</div><div class="loc-value">Boralesgamuwa Junction</div></div></div>
+                <div class="connector"></div>
+                <div class="loc-row"><div class="dot dot-red"></div><div style="flex:1"><div class="loc-label">DROP-OFF</div><div class="loc-value">Colombo Fort</div></div></div>
+              </div>
+              <div class="fare-row fare-neutral">
+                <div><div class="fare-label" style="color:#3B82F6;">ESTIMATED FARE</div><div class="fare-value" style="color:#1D4ED8;">Rs. 850</div></div>
+                <div style="text-align:right"><div class="fare-label" style="color:#3B82F6;">DISTANCE</div><div class="dist-value">12 km</div></div>
+              </div>
+              <button class="cancel-btn">
+                <i data-lucide="x" style="width:18px;height:18px"></i>
+                CANCEL RIDE REQUEST
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         STATE 2: ACCEPTED
+    ============================================================= -->
+    <div class="state-wrap">
+      <div class="state-label" style="background: #16A34A;">2 · ACCEPTED</div>
+      <p class="state-desc">Green theme = driver connected & confirmed.<br/>Green strip, green driver card, green fare highlight.</p>
+      <div class="phone">
+        <div class="screen">
+          <div class="card">
+            <div class="status-strip strip-accepted">
+              <div class="strip-row">
+                <div class="strip-icon-circle">
+                  <i data-lucide="check-circle-2" style="width:22px;height:22px;color:#fff"></i>
+                </div>
+                <div>
+                  <div class="strip-title">DRIVER CONNECTED!</div>
+                  <div class="strip-sub">On the way to your pickup · ETA 6 min</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div class="driver-card driver-card-accepted">
+                <div class="avatar avatar-accepted">K</div>
+                <div class="driver-info">
+                  <div class="driver-name">Kasun Perera</div>
+                  <div class="vehicle-details">Toyota Aqua · White</div>
+                  <span class="plate">CAB-1234</span>
+                </div>
+                <div class="call-btn call-btn-green">
+                  <i data-lucide="phone" style="width:20px;height:20px;color:#fff"></i>
+                </div>
+              </div>
+              <div class="trip-card trip-accepted">
+                <div class="loc-row"><div class="dot dot-green"></div><div style="flex:1"><div class="loc-label">PICKUP</div><div class="loc-value">Boralesgamuwa Junction</div></div></div>
+                <div class="connector"></div>
+                <div class="loc-row"><div class="dot dot-red"></div><div style="flex:1"><div class="loc-label">DROP-OFF</div><div class="loc-value">Colombo Fort</div></div></div>
+              </div>
+              <div class="fare-row fare-accepted">
+                <div><div class="fare-label txt-accepted">ESTIMATED FARE</div><div class="fare-value txt-accepted">Rs. 850</div></div>
+                <div style="text-align:right"><div class="fare-label txt-accepted">DISTANCE</div><div class="dist-value">12 km</div></div>
+              </div>
+              <button class="cancel-btn">
+                <i data-lucide="x" style="width:18px;height:18px"></i>
+                CANCEL RIDE REQUEST
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         STATE 3: ARRIVED
+    ============================================================= -->
+    <div class="state-wrap">
+      <div class="state-label" style="background: #D97706;">3 · ARRIVED</div>
+      <p class="state-desc">Amber theme = ACTION NEEDED.<br/>Bright orange strip grabs attention — go outside!</p>
+      <div class="phone">
+        <div class="screen">
+          <div class="card">
+            <div class="status-strip strip-arrived">
+              <div class="strip-row">
+                <div class="strip-icon-circle">
+                  <i data-lucide="bell-ring" style="width:22px;height:22px;color:#fff"></i>
+                </div>
+                <div>
+                  <div class="strip-title">DRIVER HAS ARRIVED!</div>
+                  <div class="strip-sub">Waiting at pickup · Please come outside</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div class="driver-card driver-card-arrived">
+                <div class="avatar avatar-arrived">K</div>
+                <div class="driver-info">
+                  <div class="driver-name">Kasun Perera</div>
+                  <div class="vehicle-details">Toyota Aqua · White</div>
+                  <span class="plate">CAB-1234</span>
+                </div>
+                <div class="call-btn call-btn-amber">
+                  <i data-lucide="phone" style="width:20px;height:20px;color:#fff"></i>
+                </div>
+              </div>
+              <div class="trip-card trip-arrived">
+                <div class="loc-row"><div class="dot dot-green"></div><div style="flex:1"><div class="loc-label">DRIVER IS AT</div><div class="loc-value">Boralesgamuwa Junction</div></div></div>
+                <div class="connector"></div>
+                <div class="loc-row"><div class="dot dot-red"></div><div style="flex:1"><div class="loc-label">HEADING TO</div><div class="loc-value">Colombo Fort</div></div></div>
+              </div>
+              <div class="fare-row fare-arrived">
+                <div><div class="fare-label txt-arrived">ESTIMATED FARE</div><div class="fare-value txt-arrived">Rs. 850</div></div>
+                <div style="text-align:right"><div class="fare-label txt-arrived">DISTANCE</div><div class="dist-value">12 km</div></div>
+              </div>
+              <button class="cancel-btn">
+                <i data-lucide="x" style="width:18px;height:18px"></i>
+                CANCEL RIDE REQUEST
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         STATE 4: TRIP IN PROGRESS
+    ============================================================= -->
+    <div class="state-wrap">
+      <div class="state-label" style="background: #2563EB;">4 · TRIP IN PROGRESS</div>
+      <p class="state-desc">Blue theme = motion. Progress bar animates.<br/>Cancel disabled — trip is live.</p>
+      <div class="phone">
+        <div class="screen">
+          <div class="card">
+            <div class="status-strip strip-transit">
+              <div class="strip-row">
+                <div class="strip-icon-circle">
+                  <i data-lucide="navigation" style="width:22px;height:22px;color:#fff"></i>
+                </div>
+                <div>
+                  <div class="strip-title">TRIP IN PROGRESS</div>
+                  <div class="strip-sub">On the way to Colombo Fort · ETA 18 min</div>
+                </div>
+              </div>
+              <div class="progress-track"><div class="progress-fill" style="width:35%"></div></div>
+            </div>
+
+            <div class="card-body">
+              <div class="driver-card driver-card-transit">
+                <div class="avatar avatar-transit">K</div>
+                <div class="driver-info">
+                  <div class="driver-name">Kasun Perera</div>
+                  <div class="vehicle-details">Toyota Aqua · White</div>
+                  <span class="plate">CAB-1234</span>
+                </div>
+                <div class="call-btn call-btn-blue">
+                  <i data-lucide="phone" style="width:20px;height:20px;color:#fff"></i>
+                </div>
+              </div>
+              <div class="trip-card trip-transit">
+                <div class="loc-row"><div class="dot dot-green"></div><div style="flex:1"><div class="loc-label">PICKED UP FROM</div><div class="loc-value">Boralesgamuwa Junction</div></div></div>
+                <div class="connector"></div>
+                <div class="loc-row"><div class="dot dot-red"></div><div style="flex:1"><div class="loc-label">HEADING TO</div><div class="loc-value">Colombo Fort</div></div></div>
+              </div>
+              <div class="fare-row fare-transit">
+                <div><div class="fare-label txt-transit">TRIP FARE</div><div class="fare-value txt-transit">Rs. 850</div></div>
+                <div style="text-align:right"><div class="fare-label txt-transit">ETA</div><div class="dist-value">18 min</div></div>
+              </div>
+              <button class="cancel-btn btn-disabled">
+                <i data-lucide="lock" style="width:16px;height:16px"></i>
+                TRIP IN PROGRESS
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         STATE 5: COMPLETED
+    ============================================================= -->
+    <div class="state-wrap">
+      <div class="state-label" style="background: #059669;">5 · COMPLETED</div>
+      <p class="state-desc">Emerald green = trip done successfully.<br/>Rating stars + final fare + Done button.</p>
+      <div class="phone">
+        <div class="screen">
+          <div class="card">
+            <div class="status-strip strip-completed">
+              <div class="strip-row">
+                <div class="strip-icon-circle">
+                  <i data-lucide="check-circle-2" style="width:22px;height:22px;color:#fff"></i>
+                </div>
+                <div>
+                  <div class="strip-title">TRIP COMPLETED</div>
+                  <div class="strip-sub">Thanks for riding with us!</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div class="driver-card driver-card-completed">
+                <div class="avatar avatar-completed">K</div>
+                <div class="driver-info">
+                  <div class="driver-name">Kasun Perera</div>
+                  <div class="vehicle-details">Toyota Aqua · CAB-1234</div>
+                  <div class="rating-row">
+                    <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star-empty">★</span>
+                    <span style="font-size:11px; color:#64748B; margin-left:6px;">Rate this driver</span>
+                  </div>
+                </div>
+              </div>
+              <div class="fare-row fare-completed">
+                <div><div class="fare-label txt-completed">FINAL FARE</div><div class="fare-value txt-completed">Rs. 875</div></div>
+                <div style="text-align:right"><div class="fare-label txt-completed">DISTANCE</div><div class="dist-value">12.4 km</div></div>
+              </div>
+              <div style="display:flex; gap:10px;">
+                <button class="cancel-btn" style="flex:1; background:#F1F5F9; border-color:#CBD5E1; color:#475569;">
+                  <i data-lucide="receipt" style="width:16px;height:16px"></i>
+                  RECEIPT
+                </button>
+                <button class="primary-btn" style="flex:1; background: linear-gradient(135deg, #10B981, #059669);">
+                  <i data-lucide="check" style="width:16px;height:16px"></i>
+                  DONE
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         STATE 6: CANCELLED
+    ============================================================= -->
+    <div class="state-wrap">
+      <div class="state-label" style="background: #B91C1C;">6 · CANCELLED</div>
+      <p class="state-desc">Red theme = ride cancelled.<br/>Clear cancellation state, offer to book again.</p>
+      <div class="phone">
+        <div class="screen">
+          <div class="card">
+            <div class="status-strip strip-cancelled">
+              <div class="strip-row">
+                <div class="strip-icon-circle">
+                  <i data-lucide="x-circle" style="width:22px;height:22px;color:#fff"></i>
+                </div>
+                <div>
+                  <div class="strip-title">RIDE CANCELLED</div>
+                  <div class="strip-sub">Your booking has been cancelled</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div style="display:flex; flex-direction:column; align-items:center; padding:20px 0 24px;">
+                <div style="width:64px; height:64px; border-radius:32px; background:#FEE2E2; display:flex; align-items:center; justify-content:center; margin-bottom:12px;">
+                  <i data-lucide="x-octagon" style="width:32px;height:32px;color:#DC2626"></i>
+                </div>
+                <div style="font-size:15px; font-weight:700; color:#1E293B;">Cancelled at 3:42 PM</div>
+                <div style="font-size:12px; color:#64748B; margin-top:3px; text-align:center;">Cancellation reason: User cancelled the booking</div>
+              </div>
+
+              <div class="trip-card" style="background:#FEF2F2; border-color:#FCA5A5;">
+                <div class="loc-row"><div class="dot dot-green"></div><div style="flex:1"><div class="loc-label">PICKUP</div><div class="loc-value">Boralesgamuwa Junction</div></div></div>
+                <div class="connector"></div>
+                <div class="loc-row"><div class="dot dot-red"></div><div style="flex:1"><div class="loc-label">DROP-OFF</div><div class="loc-value">Colombo Fort</div></div></div>
+              </div>
+
+              <button class="primary-btn" style="background: linear-gradient(135deg, #EF4444, #B91C1C);">
+                <i data-lucide="rotate-cw" style="width:16px;height:16px"></i>
+                BOOK ANOTHER RIDE
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         STATE 7: RECEIPT (downloadable)
+    ============================================================= -->
+    <div class="state-wrap">
+      <div class="state-label" style="background: linear-gradient(135deg, #2563EB, #10B981);">7 · RECEIPT</div>
+      <p class="state-desc">Trip receipt with Serve Family branding.<br/>Downloadable as PDF, PNG, or printable.</p>
+
+      <div class="receipt" id="receipt">
+        <!-- Header -->
+        <div class="receipt-header">
+          <div class="logo-wrap">
+            <img src="src/assets/logo/icon.png" alt="Serve Family Logo" id="receiptLogo"/>
+          </div>
+          <div class="brand-name">Serve Family</div>
+          <div class="brand-tagline">Ride · Share · Care</div>
+          <div class="receipt-status-chip">
+            <i data-lucide="check-circle-2" style="width:12px;height:12px"></i>
+            TRIP COMPLETED
+          </div>
+        </div>
+
+        <!-- Receipt meta -->
+        <div class="receipt-meta">
+          <div>
+            <div class="meta-label">RECEIPT #</div>
+            <div class="meta-value">SF-2026-0942</div>
+          </div>
+          <div style="text-align:right">
+            <div class="meta-label">DATE</div>
+            <div class="meta-value">29 Sep 2026 · 3:42 PM</div>
+          </div>
+        </div>
+
+        <!-- Driver info -->
+        <div class="r-section">
+          <div class="r-section-title">
+            <i data-lucide="user" style="width:11px;height:11px"></i>
+            DRIVER
+          </div>
+          <div class="r-driver-block">
+            <div class="r-driver-avatar">K</div>
+            <div class="r-driver-details" style="flex:1">
+              <h3>Kasun Perera</h3>
+              <p>Toyota Aqua · White · Sedan</p>
+              <span class="r-plate">CAB-1234</span>
+            </div>
+            <div style="text-align:right">
+              <div class="r-rating-row" style="display:flex; gap:1px;">
+                <span class="r-star">★</span><span class="r-star">★</span><span class="r-star">★</span><span class="r-star">★</span><span class="r-star-empty">★</span>
+              </div>
+              <div style="font-size:9px; color:#64748B; margin-top:2px; font-weight:600;">4.2 Rating</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trip route -->
+        <div class="r-section">
+          <div class="r-section-title">
+            <i data-lucide="map-pin" style="width:11px;height:11px"></i>
+            TRIP ROUTE
+          </div>
+          <div class="r-route-item">
+            <div class="r-route-dot r-dot-pickup"></div>
+            <div style="flex:1">
+              <div class="r-route-label">PICKUP</div>
+              <div class="r-route-value">Boralesgamuwa Junction</div>
+              <div class="r-route-time">3:18 PM</div>
+            </div>
+          </div>
+          <div class="r-route-connector"></div>
+          <div class="r-route-item">
+            <div class="r-route-dot r-dot-drop"></div>
+            <div style="flex:1">
+              <div class="r-route-label">DROP-OFF</div>
+              <div class="r-route-value">Colombo Fort Railway Station</div>
+              <div class="r-route-time">3:42 PM</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="r-section">
+          <div class="r-stats-grid">
+            <div class="r-stat-cell">
+              <div class="r-stat-icon" style="background:#EFF6FF;">
+                <i data-lucide="route" style="width:14px;height:14px;color:#2563EB"></i>
+              </div>
+              <div class="r-stat-value">12.4 km</div>
+              <div class="r-stat-label">DISTANCE</div>
+            </div>
+            <div class="r-stat-cell">
+              <div class="r-stat-icon" style="background:#FEF3C7;">
+                <i data-lucide="clock" style="width:14px;height:14px;color:#D97706"></i>
+              </div>
+              <div class="r-stat-value">24 min</div>
+              <div class="r-stat-label">DURATION</div>
+            </div>
+            <div class="r-stat-cell">
+              <div class="r-stat-icon" style="background:#F0FDF4;">
+                <i data-lucide="car" style="width:14px;height:14px;color:#16A34A"></i>
+              </div>
+              <div class="r-stat-value">Sedan</div>
+              <div class="r-stat-label">VEHICLE</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fare breakdown -->
+        <div class="r-section">
+          <div class="r-section-title">
+            <i data-lucide="receipt" style="width:11px;height:11px"></i>
+            FARE BREAKDOWN
+          </div>
+          <div class="r-fare-line">
+            <span class="r-fare-key">Base fare</span>
+            <span class="r-fare-val">Rs. 200.00</span>
+          </div>
+          <div class="r-fare-line">
+            <span class="r-fare-key">Distance (12.4 km × Rs. 120)</span>
+            <span class="r-fare-val">Rs. 1,488.00</span>
+          </div>
+          <div class="r-fare-line">
+            <span class="r-fare-key">Waiting time (3 min × Rs. 5)</span>
+            <span class="r-fare-val">Rs. 15.00</span>
+          </div>
+          <div class="r-fare-line">
+            <span class="r-fare-key">Service fee</span>
+            <span class="r-fare-val">Rs. 50.00</span>
+          </div>
+          <div class="r-fare-line r-fare-discount">
+            <span class="r-fare-key">Promo (WELCOME10)</span>
+            <span class="r-fare-val">− Rs. 175.00</span>
+          </div>
+          <div class="r-fare-line" style="border-top: 1px dashed #E2E8F0; margin-top: 5px; padding-top: 7px;">
+            <span class="r-fare-key" style="font-weight: 700;">Subtotal</span>
+            <span class="r-fare-val">Rs. 1,578.00</span>
+          </div>
+          <div class="r-fare-line">
+            <span class="r-fare-key">Tax (VAT 8%)</span>
+            <span class="r-fare-val">Rs. 126.24</span>
+          </div>
+        </div>
+
+        <!-- Total -->
+        <div class="r-total-block">
+          <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+            <div>
+              <div class="r-total-label">TOTAL PAID</div>
+              <div class="r-total-value">Rs. 1,704.24</div>
+              <div class="r-total-subtext">Sri Lankan Rupees (LKR)</div>
+            </div>
+            <div style="text-align:right">
+              <i data-lucide="badge-check" style="width:32px;height:32px;color:#16A34A"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment method -->
+        <div class="r-payment-block">
+          <div class="r-payment-icon">
+            <i data-lucide="credit-card" style="width:16px;height:16px;color:#fff"></i>
+          </div>
+          <div style="flex:1">
+            <div class="r-payment-method">Visa •••• 4829</div>
+            <div class="r-payment-status">Payment successful</div>
+          </div>
+          <div class="r-payment-badge">PAID</div>
+        </div>
+
+        <!-- QR -->
+        <div class="r-qr-block">
+          <div class="r-qr-code"></div>
+          <div class="r-qr-info">
+            <h4>Trip verification</h4>
+            <p>Scan to verify this receipt</p>
+            <span class="r-verification-code">SF-0942-TX</span>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="r-footer">
+          <div class="r-footer-thankyou">Thank you for riding with us! 💙</div>
+          <div class="r-footer-tag">Your safety is our priority</div>
+          <div class="r-footer-contact">
+            <div class="r-contact-item">
+              <i data-lucide="phone" style="width:10px;height:10px"></i>
+              +94 11 555 0100
+            </div>
+            <div class="r-contact-item">
+              <i data-lucide="mail" style="width:10px;height:10px"></i>
+              support@servefamily.com
+            </div>
+          </div>
+          <div class="r-footer-legal">© 2026 SERVE FAMILY (PVT) LTD · ALL RIGHTS RESERVED</div>
+        </div>
+      </div>
+
+      <!-- Download buttons -->
+      <div class="receipt-actions">
+        <button class="receipt-btn receipt-btn-pdf" onclick="downloadPDF()">
+          <i data-lucide="file-text" style="width:13px;height:13px"></i>
+          PDF
+        </button>
+        <button class="receipt-btn receipt-btn-png" onclick="downloadPNG()">
+          <i data-lucide="image" style="width:13px;height:13px"></i>
+          PNG
+        </button>
+        <button class="receipt-btn receipt-btn-print" onclick="window.print()">
+          <i data-lucide="printer" style="width:13px;height:13px"></i>
+          PRINT
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="max-width:1200px; margin: 40px auto 0; background:#fff; padding:24px; border-radius:16px; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+    <h2 style="font-size:18px; font-weight:800; color:#0F172A; margin-bottom:12px;">🎨 Color System Summary</h2>
+    <table style="width:100%; border-collapse:collapse; font-size:13px;">
+      <thead>
+        <tr style="background:#F8FAFC; text-align:left;">
+          <th style="padding:10px; border:1px solid #E2E8F0;">Status</th>
+          <th style="padding:10px; border:1px solid #E2E8F0;">Strip (top)</th>
+          <th style="padding:10px; border:1px solid #E2E8F0;">Card tint</th>
+          <th style="padding:10px; border:1px solid #E2E8F0;">Text/Fare</th>
+          <th style="padding:10px; border:1px solid #E2E8F0;">Meaning</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="padding:10px; border:1px solid #E2E8F0;"><b>Pending</b></td>
+          <td style="padding:10px; border:1px solid #E2E8F0; background:#EFF6FF; color:#1D4ED8;">Blue #2563EB → #1D4ED8</td>
+          <td style="padding:10px; border:1px solid #E2E8F0;">Neutral (light)</td>
+          <td style="padding:10px; border:1px solid #E2E8F0;">Blue</td>
+          <td style="padding:10px; border:1px solid #E2E8F0;">Searching / waiting</td>
+        </tr>
+        <tr>
+          <td style="padding:10px; border:1px solid #E2E8F0;"><b>Accepted</b></td>
+          <td style="padding:10px; border:1px solid #E2E8F0; background:#F0FDF4; color:#15803D;">Green #22C55E → #15803D</td>
+          <td style="padding:10px; border:1px solid #E2E8F0;">Green tint</td>
+          <td style="padding:10px; border:1px solid #E2E8F0;">Green</td>
+          <td style="padding:10px; border:1px solid #E2E8F0;">Driver confirmed</td>
+        </tr>
+        <tr>
+          <td style="padding:10px; border:1px solid #E2E8F0;"><b>Arrived</b></td>
+          <td style="padding:10px; border:1px solid #E2E8F0; background:#FFFBEB; color:#B45309;">Amber #F59E0B → #D97706</td>
+          <td style="padding:10px; border:1px solid #E2E8F0;">Amber tint</td>
+          <td style="padding:10px; border:1px solid #E2E8F0;">Amber</td>
+          <td style="padding:10px; border:1px solid #E2E8F0;">⚠️ Action needed – go outside</td>
+        </tr>
+        <tr>
+          <td style="padding:10px; border:1px solid #E2E8F0;"><b>In Progress</b></td>
+          <td style="padding:10px; border:1px solid #E2E8F0; background:#EFF6FF; color:#1D4ED8;">Blue #3B82F6 → #1D4ED8</td>
+          <td style="padding:10px; border:1px solid #E2E8F0;">Blue tint</td>
+          <td style="padding:10px; border:1px solid #E2E8F0;">Blue</td>
+          <td style="padding:10px; border:1px solid #E2E8F0;">Trip live / moving</td>
+        </tr>
+        <tr>
+          <td style="padding:10px; border:1px solid #E2E8F0;"><b>Completed</b></td>
+          <td style="padding:10px; border:1px solid #E2E8F0; background:#ECFDF5; color:#059669;">Emerald #10B981 → #059669</td>
+          <td style="padding:10px; border:1px solid #E2E8F0;">Emerald tint</td>
+          <td style="padding:10px; border:1px solid #E2E8F0;">Emerald</td>
+          <td style="padding:10px; border:1px solid #E2E8F0;">Success – trip done</td>
+        </tr>
+        <tr>
+          <td style="padding:10px; border:1px solid #E2E8F0;"><b>Cancelled</b></td>
+          <td style="padding:10px; border:1px solid #E2E8F0; background:#FEF2F2; color:#B91C1C;">Red #EF4444 → #B91C1C</td>
+          <td style="padding:10px; border:1px solid #E2E8F0;">Red tint</td>
+          <td style="padding:10px; border:1px solid #E2E8F0;">Red</td>
+          <td style="padding:10px; border:1px solid #E2E8F0;">Cancelled / ended</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    // Convert logo image to base64 so html2canvas can capture it reliably
+    async function embedLogo() {
+      const img = document.getElementById('receiptLogo');
+      if (!img || img.src.startsWith('data:')) return;
+      try {
+        const response = await fetch(img.src);
+        const blob = await response.blob();
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => { img.src = reader.result; resolve(); };
+          reader.readAsDataURL(blob);
+        });
+      } catch (e) {
+        console.warn("Could not embed logo:", e);
+      }
+    }
+
+    async function captureReceipt() {
+      await embedLogo();
+      await new Promise(r => setTimeout(r, 120));
+      const receipt = document.getElementById('receipt');
+      return await html2canvas(receipt, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        useCORS: true,
+        logging: false,
+      });
+    }
+
+    async function downloadPNG() {
+      try {
+        const canvas = await captureReceipt();
+        const link = document.createElement('a');
+        link.download = `ServeFamily_Receipt_SF-2026-0942.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      } catch (e) {
+        alert("Could not generate PNG: " + e.message);
+      }
+    }
+
+    async function downloadPDF() {
+      try {
+        const canvas = await captureReceipt();
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: [80, 200], // narrow receipt format
+        });
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save(`ServeFamily_Receipt_SF-2026-0942.pdf`);
+      } catch (e) {
+        alert("Could not generate PDF: " + e.message);
+      }
+    }
+  </script>
+
+  <style media="print">
+    body { background: #fff; padding: 0; }
+    .page-title, .page-sub, .grid > .state-wrap:not(:last-child), .receipt-actions,
+    div[style*="max-width:1200px"] { display: none !important; }
+    .receipt { box-shadow: none; margin: 0 auto; }
+  </style>
+</body>
+</html>
